@@ -5,7 +5,7 @@ A Quarto extension for creating Typst-based slide presentations using the [Touyi
 ## Installation
 
 ```bash
-quarto add qmd-ptm-ty-slides
+quarto add calote/qmd-ptm-ty-slides
 ```
 
 Or copy the `_extensions/qmd-ptm-ty-slides/` folder into your project.
