@@ -1,0 +1,32 @@
+---
+title: "Introducción a la Estadística"
+subtitle: "RMarkdown vs Quarto"
+author: "Prof. Pedro L. Luque"
+date: "2025-03-12"
+date-format: long
+institute: "Universidad Sevilla"
+
+format:
+  qmd-ptm-ty-slides-typst:
+    #output-file: example-handout.pdf
+    aspect-ratio: "16-9"
+    header-color:  "#003f72"
+    section-color: "#AB262D"
+    section-color-2: "#df9102"
+    accent-color:  "#c0392b"
+    font-size: 16pt
+    code-bg-color: "#dce8ff"
+    output-bg-color: "#99bb00"
+    keep-typ: false
+    handout: true          # ← modo handout: colapsa los #pause, solo el paso final
+    section-level: 2
+    slide-numbering: true
+    toc-slide: true
+    toc-levels: 3
+    toc-columns: 2
+    toc-font-size: "1em"
+    toc-title: "Índice"
+---
+
+
+{{< include example.qmd >}}  

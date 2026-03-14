@@ -1,0 +1,315 @@
+---
+title: "Introducción a la Estadística"
+subtitle: "RMarkdown vs Quarto"
+author: "Prof. Pedro L. Luque"
+lang: es
+date: "2025-03-12"
+date-format: long
+institute: "Universidad Sevilla"
+
+format:
+  qmd-ptm-ty-slides-typst:
+    aspect-ratio: "16-9"
+    #header-color:  "#003f72"   # Barra de título + secciones H1 (si no se especifica section-color)
+    #header-color:  "#005500"   # Barra de título + secciones H1 (si no se especifica     # section-color: "#1a5276"  # Color diferente para las secciones H1 (opcional)
+    # accent-color:  "#eb811b"  # Barra de progreso (naranja por defecto)
+    header-color:  "#003f72"   # azul marino → barra de título
+    #section-color: "#1a5276"   # azul más claro → fondos H1
+    section-color: "#AB262D"  # US: AB262D   #995276
+    section-color-2: "#df9102" # "#00aa33" # Fondo section-slide nivel 2 (solo si section-level >= 3)
+    # section-color-3: "#1A5276" # Fondo section-slide nivel 3 (solo si section-level >= 4)
+
+    accent-color:  "#c0392b"   # rojo → barra de progreso    font-size: 16pt
+    #papersize: a4
+    code-bg-color: "#dce8ff"    # azul claro para código fuente
+    output-bg-color: "#99bb00" #"#e8f5e9"  # verde claro para resultados
+    keep-typ: true
+    section-level: 2
+    slide-numbering: true
+    toc-slide: true
+    toc-levels: 3
+    toc-columns: 2
+    toc-font-size: "1em"
+    toc-title: "Índice"
+    handout: false
+  typst:
+    toc: true
+    header-includes: |
+      #let alert(body) = text(fill: rgb("#cc0000"))[body]
+  html:
+    toc: true
+  pdf:
+    toc: true
+  beamer:
+    toc: true
+  revealjs:
+    toc: true
+---
+
+# Bloque 1: Conceptos Básicos
+
+## ¿Qué es la Estadística?
+
+{{< fontsize 0.78em >}}
+
+La estadística es la ciencia que se ocupa de la **recopilación**,
+**organización** y **análisis** de datos.
+
+[Se divide en dos grandes ramas:]{.alert}
+
+Here is a [span with a green background]{style="background-color:green"}.
+
+- Estadística **descriptiva**: resume y describe los datos
+- Estadística **inferencial**: generaliza a partir de una muestra
+
+{{< fontsize 1em >}}
+
+## Presentación incremental con `{{< pause >}}`
+
+Los elementos aparecen paso a paso:
+
+{{< pause >}}
+
+- Primer punto: recopilación de datos
+
+{{< pause >}}
+
+- Segundo punto: análisis exploratorio
+
+{{< pause >}}
+
+- Tercer punto: inferencia y conclusiones
+
+## Texto destacado con `alert`
+
+El tema Metropolis incluye la función `#alert[]` para resaltar texto:
+
+```{=typst}
+#alert[La estadística es fundamental en la ciencia de datos.]
+```
+
+El resto del contenido sigue en estilo normal.
+
+## Diseño en dos columnas con `{.cols}`
+
+::::{.cols}
+:::::{.col}
+**Estadística Descriptiva**
+
+- Media, mediana, moda
+- Varianza y desviación típica
+- Percentiles y cuartiles
+- Histogramas y boxplots
+:::::
+:::::{.col}
+**Estadística Inferencial**
+
+- Intervalos de confianza
+- Contraste de hipótesis
+- Regresión y correlación
+- Análisis de varianza
+:::::
+::::
+
+## Tipos de Variables
+
+:::{.alert}
+Las variables pueden clasificarse según su naturaleza:
+:::
+
+::: {.callout-note}
+
+###### Hola amigos
+
+Bla bla ...
+:::
+
+### Variables Cuantitativas
+
+Toman valores numéricos:
+
+- **Discretas**: número de hijos, coches...
+- **Continuas**: altura, peso, temperatura...
+
+### Variables Cualitativas
+
+Expresan una cualidad o categoría:
+
+- Nominales: color de ojos, país de origen
+- Ordinales: nivel de estudios, satisfacción
+
+### Escalas de Medición
+
+#### Escala Nominal
+
+Sin orden natural entre categorías.
+
+#### Escala Ordinal
+
+Con orden, pero sin distancia definida.
+
+# Bloque 2: Estadística Descriptiva
+
+## Medidas de Tendencia Central
+
+Las más usadas son:
+
+::: {.center}
+
+| Medida | Símbolo | Descripción |
+|--------|---------|-------------|
+| Media | $\bar{x}$ | Promedio aritmético |
+| Mediana | $M_e$ | Valor central |
+| Moda | $M_o$ | Valor más frecuente |
+
+:::
+
+## Medidas de Dispersión
+
+### La Desviación Típica
+
+Mide cuánto se alejan los datos de la media:
+
+$$\sigma = \sqrt{\frac{\sum_{i=1}^{n}(x_i - \bar{x})^2}{n}}$$
+
+### El Rango Intercuartílico
+
+Diferencia entre el tercer y primer cuartil:
+
+$$\text{IQR} = Q_3 - Q_1$$
+
+## Diapositiva con fuente reducida con `{{< fontsize >}}`
+
+{{< fontsize 0.78em >}}
+
+| Estadístico | Fórmula | Uso recomendado | Outliers |
+|---|---|---|---|
+| Media | $\bar{x} = \frac{1}{n}\sum x_i$ | Datos simétricos | Sensible |
+| Mediana | Valor central ordenado | Datos asimétricos | Robusto |
+| Moda | Valor más frecuente | Categóricos | Robusto |
+| Varianza | $s^2 = \frac{\sum(x_i-\bar{x})^2}{n-1}$ | Dispersión global | Sensible |
+| Desv. típica | $s = \sqrt{s^2}$ | Mismas unidades que $x$ | Sensible |
+| IQR | $Q_3 - Q_1$ | Dispersión robusta | Robusto |
+
+## Código R: Estadísticos básicos
+
+{{< fontsize 0.78em >}}
+
+```r
+# Cargar datos de ejemplo
+x <- c(4.2, 5.1, 3.8, 6.0, 4.7, 5.5, 3.9, 6.2)
+
+# Medidas de tendencia central
+mean(x)    # media
+median(x)  # mediana
+
+# Medidas de dispersión
+sd(x)      # desviación típica
+IQR(x)     # rango intercuartílico
+
+summary(x) # resumen completo
+```
+
+
+---
+
+{{< fontsize 0.78em >}}
+
+```{r}
+#| echo: true
+# Cargar datos de ejemplo
+x <- c(4.2, 5.1, 3.8, 6.0, 4.7, 5.5, 3.9, 6.2)
+
+# Medidas de tendencia central
+mean(x)    # media
+median(x)  # mediana
+
+# Medidas de dispersión
+sd(x)      # desviación típica
+IQR(x)     # rango intercuartílico
+
+summary(x) # resumen completo
+```
+
+{{< fontsize 1em >}}
+
+## Visualización de Datos
+
+Los gráficos más habituales según el tipo de variable:
+
+- **Histograma**: variables continuas
+- **Diagrama de barras**: variables discretas o cualitativas
+- **Boxplot**: distribución y outliers
+
+{{< pause >}}
+
+```{=typst}
+#alert[Elegir el gráfico adecuado es tan importante como calcularlo correctamente.]
+```
+
+# Bloque 3: Inferencia
+
+## Estimación Puntual y por Intervalos
+
+### Intervalo de Confianza para la Media
+
+Para una muestra grande ($n > 30$):
+
+$$\bar{x} \pm z_{\alpha/2} \cdot \frac{\sigma}{\sqrt{n}}$$
+
+### Interpretación
+
+Un intervalo al 95% significa que, si repitiéramos el muestreo muchas veces,
+el 95% de los intervalos construidos contendría el verdadero parámetro.
+
+## Contraste de Hipótesis
+
+Pasos básicos:
+
+{{< pause >}}
+
+**1.** Formular $H_0$ y $H_1$
+
+{{< pause >}}
+
+**2.** Fijar el nivel de significación $\alpha$
+
+{{< pause >}}
+
+**3.** Calcular el estadístico de contraste
+
+{{< pause >}}
+
+**4.** Decidir en base al *p-valor*
+
+{{< pause >}}
+
+```{=typst}
+#alert[Si $p < alpha$, se rechaza $H_0$.]
+```
+
+## Comparación de dos grupos
+
+::::{.cols}
+:::::{.col}
+**Prueba $t$ de Student**
+
+Para medias de dos grupos independientes:
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{s_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}$$
+
+Supone normalidad e igualdad de varianzas.
+:::::
+:::::{.col}
+**Prueba de Wilcoxon**
+
+Alternativa no paramétrica:
+
+- No asume normalidad
+- Basada en rangos
+- Más robusta ante outliers
+- Menor potencia si hay normalidad
+:::::
+::::
+
+
