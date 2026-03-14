@@ -30,14 +30,21 @@ Detección de formato:
 -- Devuelve true solo cuando el formato activo es touying-slides-typst.
 -- La detección se basa en la clave `touying-slides-format` inyectada por
 -- los defaults de _extension.yml; no aparece en format: typst estándar.
+-- Excepción explícita: si `formato-typst-a4` está presente y es true,
+-- devuelve false aunque touying-slides-format esté inyectado por Quarto
+-- al cargar los shortcodes de la extensión en el contexto del proyecto.
+local function is_truthy(val)
+  if val == nil then return false end
+  if type(val) == "boolean" then return val end
+  local s = pandoc.utils.stringify(val):lower()
+  return s == "true" or s == "yes" or s == "1"
+end
+
 local function is_touying(meta)
   if meta == nil then return false end
-  local marker = meta["touying-slides-format"]
-  if marker == nil then return false end
-  -- El valor puede ser MetaBool(true) o MetaInlines{Str("true")}
-  if type(marker) == "boolean" then return marker end
-  local s = pandoc.utils.stringify(marker):lower()
-  return s == "true" or s == "yes" or s == "1"
+  -- Si estamos en modo A4, nunca es touying aunque el default esté inyectado
+  if is_truthy(meta["formato-typst-a4"]) then return false end
+  return is_truthy(meta["touying-slides-format"])
 end
 
 -- {{< pause >}} ──────────────────────────────────────────────────────────────
