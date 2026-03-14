@@ -41,6 +41,117 @@ local function inlines_to_text(inlines)
   return table.concat(result)
 end
 
+-- Convierte una expresión LaTeX math al equivalente Typst.
+-- Cubre los casos más habituales en títulos de diapositivas
+-- (subíndices, superíndices, letras griegas, fracciones, acentos).
+local function latex_to_typst_math(s)
+  -- 1. \frac{num}{den} → (num)/(den)  [puede haber fracciones anidadas]
+  local changed = true
+  while changed do
+    local new_s = s:gsub("\\frac%s*(%b{})%s*(%b{})", function(num, den)
+      return "(" .. num:sub(2,-2) .. ")/(" .. den:sub(2,-2) .. ")"
+    end)
+    changed = (new_s ~= s)
+    s = new_s
+  end
+  -- 2. Comandos con un argumento: \cmd{arg} → mapped(arg)
+  s = s:gsub("\\(%a+)%s*(%b{})", function(cmd, braces)
+    local arg = braces:sub(2, -2)
+    local m = {
+      bar="overline", overline="overline", widehat="hat", hat="hat",
+      tilde="tilde", widetilde="tilde", vec="arrow", dot="dot",
+      ddot="dot.double", dddot="dot.triple", grave="grave", acute="acute",
+      check="caron", breve="breve", underline="underline", underbar="underline",
+      sqrt="sqrt", text="upright", mathrm="upright", mathbf="bold",
+      mathit="italic", mathcal="cal", boldsymbol="bold",
+    }
+    local inner = latex_to_typst_math(arg)
+    return (m[cmd] or cmd) .. "(" .. inner .. ")"
+  end)
+  -- 3. Comandos sin argumento: \cmd → símbolo Typst equivalente
+  s = s:gsub("\\(%a+)", function(cmd)
+    local m = {
+      -- Griegas minúsculas
+      alpha="alpha", beta="beta", gamma="gamma", delta="delta",
+      epsilon="epsilon", varepsilon="epsilon.alt", zeta="zeta", eta="eta",
+      theta="theta", vartheta="theta.alt", iota="iota", kappa="kappa",
+      lambda="lambda", mu="mu", nu="nu", xi="xi", pi="pi", varpi="pi.alt",
+      rho="rho", varrho="rho.alt", sigma="sigma", varsigma="sigma.alt",
+      tau="tau", upsilon="upsilon", phi="phi.alt", varphi="phi",
+      chi="chi", psi="psi", omega="omega",
+      -- Griegas mayúsculas
+      Gamma="Gamma", Delta="Delta", Theta="Theta", Lambda="Lambda",
+      Xi="Xi", Pi="Pi", Sigma="Sigma", Upsilon="Upsilon",
+      Phi="Phi", Psi="Psi", Omega="Omega",
+      -- Operadores y relaciones
+      cdot="dot.op", times="times", div="div.op",
+      pm="plus.minus", mp="minus.plus",
+      leq="lt.eq", le="lt.eq", geq="gt.eq", ge="gt.eq",
+      neq="eq.not", ne="eq.not", approx="approx", sim="tilde.op",
+      equiv="equiv", propto="prop",
+      -- Conjuntos
+      ["in"]="in", notin="in.not", subset="subset", supset="supset",
+      cup="union", cap="sect",
+      -- Miscelánea
+      infty="infinity", partial="partial", nabla="nabla",
+      sum="sum", prod="product", int="integral",
+      ldots="dots.h", cdots="dots.c", vdots="dots.v",
+      to="arrow.r", rightarrow="arrow.r", leftarrow="arrow.l",
+      quad="wide",
+    }
+    return m[cmd] or cmd  -- si no está en el mapa, quitar el backslash igualmente
+  end)
+
+  -- 4. Post-proceso: separar subíndice/superíndice de una letra o número
+  --    cuando va seguido directamente de otra letra, para evitar que Typst
+  --    los interprete como un identificador multi-letra (variable desconocida).
+  --    Ejemplos: {}_nM_x → {}_n M_x,  _1M_x → _1 M_x,  e^oM → e^o M
+  s = s:gsub("([_%^])(%a)(%a)", "%1%2 %3")
+  s = s:gsub("([_%^])(%d+)(%a)", "%1%2 %3")
+
+  return s
+end
+
+-- Convierte inlines de Pandoc a contenido Typst (para usar dentro de [...]).
+-- A diferencia de inlines_to_text, preserva las matemáticas convirtiéndolas
+-- a sintaxis Typst mediante latex_to_typst_math.
+local function inlines_to_typst_content(inlines)
+  if not inlines or #inlines == 0 then return "" end
+  local result = {}
+  for _, inline in ipairs(inlines) do
+    if inline.t == "Str" then
+      -- Escapar caracteres que Typst interpreta en modo contenido
+      local s = inline.text
+        :gsub("\\", "\\\\")
+        :gsub("#",  "\\#")
+        :gsub("%$", "\\$")
+        :gsub("%[", "\\[")
+        :gsub("%]", "\\]")
+      table.insert(result, s)
+    elseif inline.t == "Space"
+        or inline.t == "SoftBreak"
+        or inline.t == "LineBreak" then
+      table.insert(result, " ")
+    elseif inline.t == "Emph" then
+      table.insert(result, "_" .. inlines_to_typst_content(inline.content) .. "_")
+    elseif inline.t == "Strong" then
+      table.insert(result, "*" .. inlines_to_typst_content(inline.content) .. "*")
+    elseif inline.t == "Code" then
+      table.insert(result, "`" .. inline.text .. "`")
+    elseif inline.t == "Math" then
+      local typst_math = latex_to_typst_math(inline.text)
+      if inline.mathtype == "InlineMath" then
+        table.insert(result, "$" .. typst_math .. "$")
+      else
+        table.insert(result, "$ " .. typst_math .. " $")
+      end
+    elseif inline.t == "RawInline" and inline.format == "typst" then
+      table.insert(result, inline.text)
+    end
+  end
+  return table.concat(result)
+end
+
 local function escape_typst(s)
   return s:gsub('"', '\\"')
 end
@@ -323,16 +434,20 @@ function Pandoc(doc)
 
         -- Acumular en TOC solo los niveles solicitados
         if show_toc and block.level <= toc_depth then
-          local title = inlines_to_text(block.content)
+          local title         = inlines_to_text(block.content)
+          local typst_content = inlines_to_typst_content(block.content)
           if numbering then
             temp_counters[block.level] = temp_counters[block.level] + 1
             for l = block.level + 1, 5 do temp_counters[l] = 0 end
-            title = make_prefix_with(temp_counters, block.level) .. title
+            local prefix = make_prefix_with(temp_counters, block.level)
+            title         = prefix .. title
+            typst_content = prefix .. typst_content
           end
           table.insert(toc_items, {
-            level = block.level,
-            text  = title,
-            lbl   = lbl,
+            level   = block.level,
+            text    = title,          -- texto plano (no usado en el TOC pero útil para depuración)
+            content = typst_content,  -- contenido Typst con math incluido
+            lbl     = lbl,
           })
         end
       end
@@ -348,8 +463,8 @@ function Pandoc(doc)
     local typst_items = {}
     for _, item in ipairs(toc_items) do
       table.insert(typst_items, string.format(
-        '(text: "%s", lbl: "%s", level: %d)',
-        escape_typst(item.text), item.lbl, item.level
+        '(text: [%s], lbl: "%s", level: %d)',
+        item.content, item.lbl, item.level
       ))
     end
     local items_str = "(" .. table.concat(typst_items, ", ") .. ",)"
@@ -365,8 +480,8 @@ function Pandoc(doc)
 
   -- ── Helper: emitir slides de contenido, dividiendo en `---` ─────────────────
   -- Divide `content` (lista de bloques) en segmentos separados por HorizontalRule.
-  -- El primer segmento va al slide cuyo título es `first_title` (string o nil).
-  -- El `anchor` (cadena Typst o nil) se inserta al principio del primer segmento.
+  -- El `first_title` y el `anchor` se colocan en el primer segmento NO VACÍO,
+  -- de modo que si el contenido empieza con "------" el título no se pierde.
   -- Los segmentos siguientes crean slides con title: none.
   local function emit_content_slides(content, first_title, anchor)
     local segments = {}
@@ -381,18 +496,29 @@ function Pandoc(doc)
     end
     table.insert(segments, current)
 
+    -- Determinar en qué segmento se colocan el título y el ancla.
+    -- Si el primer segmento está vacío, se trasladan al primer segmento no vacío
+    -- para que el título aparezca sobre el contenido real y no en una diapositiva
+    -- vacía (esto ocurre cuando el heading va seguido inmediatamente de "------").
+    local title_seg = 1
+    if #segments[1] == 0 then
+      for si = 2, #segments do
+        if #segments[si] > 0 then
+          title_seg = si
+          break
+        end
+      end
+    end
+
     for seg_idx, segment in ipairs(segments) do
-      local is_first  = (seg_idx == 1)
-      local has_anchor = is_first and (anchor ~= nil)
-      -- El primer segmento se emite siempre si tiene ancla (aunque esté vacío),
-      -- porque la etiqueta debe existir en el documento aunque el heading no tenga
-      -- contenido propio (va inmediatamente seguido del siguiente heading).
+      local is_title   = (seg_idx == title_seg)
+      local has_anchor = is_title and (anchor ~= nil)
       if #segment == 0 and not has_anchor then
-        -- segmento vacío sin ancla: ignorar
+        -- segmento vacío sin título ni ancla: ignorar
       else
         local title_str
-        if is_first and first_title ~= nil then
-          title_str = '"' .. escape_typst(first_title) .. '"'
+        if is_title and first_title ~= nil then
+          title_str = first_title  -- ya formateado como "[contenido Typst]"
         else
           title_str = "none"
         end
@@ -421,10 +547,13 @@ function Pandoc(doc)
 
     -- Niveles 1 .. slide_level-1 → diapositiva de sección (fondo de color)
     if block.t == "Header" and block.level >= 1 and block.level < slide_level then
-      local raw_title = inlines_to_text(block.content)
+      local raw_title    = inlines_to_text(block.content)
+      local typst_content = inlines_to_typst_content(block.content)
       if numbering then
         bump(block.level)
-        raw_title = make_prefix(block.level) .. raw_title
+        local prefix = make_prefix(block.level)
+        raw_title    = prefix .. raw_title
+        typst_content = prefix .. typst_content
       end
       local lbl = label_by_idx[i] or ("toc-slide-unlabeled-" .. i)
       -- Color: section-color-N sobrescribe el color del nivel N; de lo contrario
@@ -433,7 +562,7 @@ function Pandoc(doc)
       local color_arg = lvl_color and (', color: rgb("' .. lvl_color .. '")') or ""
       -- El ancla va DENTRO del body para que touying no interfiera
       new_blocks:insert(pandoc.RawBlock("typst",
-        '#section-slide(title: "' .. escape_typst(raw_title) .. '"' .. color_arg .. ')[#metadata(none) <' .. lbl .. '>]'
+        '#section-slide(title: [' .. typst_content .. ']' .. color_arg .. ')[#metadata(none) <' .. lbl .. '>]'
       ))
       i = i + 1
 
@@ -448,16 +577,20 @@ function Pandoc(doc)
         i = i + 1
       end
       if #section_content > 0 then
-        emit_content_slides(section_content, raw_title, nil)
+        local title_typst = typst_content ~= "" and ("[" .. typst_content .. "]") or nil
+        emit_content_slides(section_content, title_typst, nil)
       end
 
     -- Niveles slide_level .. 5 → diapositiva normal con título
     elseif block.t == "Header" and block.level >= slide_level and block.level <= 5 then
-      local lvl = block.level
-      local raw_title = inlines_to_text(block.content)
+      local lvl          = block.level
+      local raw_title    = inlines_to_text(block.content)
+      local typst_content = inlines_to_typst_content(block.content)
       if numbering then
         bump(lvl)
-        raw_title = make_prefix(lvl) .. raw_title
+        local prefix = make_prefix(lvl)
+        raw_title    = prefix .. raw_title
+        typst_content = prefix .. typst_content
       end
       local lbl = label_by_idx[i] or ("toc-slide-unlabeled-" .. i)
 
@@ -481,14 +614,14 @@ function Pandoc(doc)
       -- En modo handout Touying produce UNA sola página por slide (el último
       -- paso), así que #only(1) ocultaría el ancla → etiqueta no encontrada.
       -- Sin #only(1) en handout no hay duplicados porque solo hay una página.
-      local title_str = raw_title ~= "" and raw_title or nil
+      local title_typst = typst_content ~= "" and ("[" .. typst_content .. "]") or nil
       local anchor
       if is_handout then
         anchor = '\n#metadata(none) <' .. lbl .. '>'
       else
         anchor = '\n#only(1)[#metadata(none) <' .. lbl .. '>]'
       end
-      emit_content_slides(slide_content, title_str, anchor)
+      emit_content_slides(slide_content, title_typst, anchor)
 
     else
       -- Bloque genérico: procesar .cols y código coloreado
