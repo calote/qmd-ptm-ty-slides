@@ -35,8 +35,12 @@ $endif$
 $if(aspect-ratio)$
   aspect-ratio: "$aspect-ratio$",
 $endif$
-$if(handout)$
+$if(handout-mode)$
   handout: true,
+$endif$
+$if(center-equations)$
+$else$
+  center-equations: false,
 $endif$
 )
 

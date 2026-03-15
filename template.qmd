@@ -6,6 +6,7 @@ lang: es
 date: "2025-03-12"
 date-format: long
 institute: "Universidad Sevilla"
+#handout-mode: true         # ← modo handout: colapsa los #pause, solo el paso final
 
 format:
   qmd-ptm-ty-slides-typst:
@@ -31,7 +32,7 @@ format:
     toc-columns: 2
     toc-font-size: "1em"
     toc-title: "Índice"
-    handout: false
+    
   typst:
     toc: true
     header-includes: |

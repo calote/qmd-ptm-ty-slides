@@ -349,7 +349,7 @@ end
 function Pandoc(doc)
   local numbering  = meta_bool(doc.meta, "slide-numbering", false)
   local show_toc   = meta_bool(doc.meta, "toc-slide", false)
-  local is_handout = meta_bool(doc.meta, "handout", false)
+  local is_handout = meta_bool(doc.meta, "handout-mode", false)
 
   -- ── slide-level: nivel mínimo para slides de contenido ──────────────────────
   -- Niveles 1 .. slide_level-1  →  section-slide (fondo de color)

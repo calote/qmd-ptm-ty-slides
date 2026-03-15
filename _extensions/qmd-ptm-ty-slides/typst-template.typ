@@ -25,6 +25,7 @@
   // Opciones visuales
   aspect-ratio: "16-9",
   handout: false,            // true → modo handout: colapsa los #pause, solo el paso final
+  center-equations: true,    // true → centra ecuaciones en bloque ($$...$$) corrigiendo sangría de listas
   header-color: rgb("#003f72"),   // fondo barra de título (secondary)
   section-color: none,            // fondo sección H1 (neutral-dark); si none → header-color
   accent-color: rgb("#eb811b"),   // barra de progreso y acento (primary)
@@ -56,8 +57,25 @@
   // Diapositiva de título automática
   title-slide()
 
-  // Resto del contenido (las diapositivas generadas por el filtro Lua)
-  body
+  // Resto del contenido (las diapositivas generadas por el filtro Lua).
+  // Si center-equations está activo, se aplica un show-rule que cancela la sangría
+  // acumulada de las listas y centra las ecuaciones en bloque ($$...$$) dentro del
+  // ancho real de la columna de texto.
+  if center-equations {
+    show math.equation.where(block: true): it => context {
+      let ml      = page.margin.left
+      let mr      = page.margin.right
+      let sangria = here().position().x - ml
+      let ancho   = page.width - ml - mr
+      move(
+        dx: -sangria,
+        block(width: ancho, align(center, it))
+      )
+    }
+    body
+  } else {
+    body
+  }
 }
 
 // ── Helpers adicionales ───────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ date: "2025-03-12"
 date-format: long
 institute: "Universidad Sevilla"
 
+handout-mode: true         # ← modo handout: colapsa los #pause, solo el paso final
+
 format:
   qmd-ptm-ty-slides-typst:
     #output-file: example-handout.pdf
@@ -18,7 +20,6 @@ format:
     code-bg-color: "#dce8ff"
     output-bg-color: "#99bb00"
     keep-typ: false
-    handout: true          # ← modo handout: colapsa los #pause, solo el paso final
     section-level: 2
     slide-numbering: true
     toc-slide: true

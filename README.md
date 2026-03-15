@@ -46,10 +46,11 @@ quarto render my-presentation.qmd
 | `toc-font-size` | string | Font size for TOC entries | `"1em"` |
 | `toc-title` | string | Title of the TOC slide | `"Contenido"` |
 | `toc-columns` | int | Number of columns in the TOC slide (1 = single column, 2 = two columns, etc.) | `1` |
+| `center-equations` | bool | Center display math (`$$...$$`) correcting accumulated list indentation | `true` |
 | `code-bg-color` | string | Background color for source code blocks; use `"none"` to disable | `"e8f0fe"` |
 | `output-bg-color` | string | Background color for code output blocks; use `"none"` to disable | `"f0f4e8"` |
 | `code-text-color` | string | Text color inside source code blocks; if omitted, uses the theme default | *(theme default)* |
-| `handout` | bool | Handout mode: collapses all `{{< pause >}}` steps, showing only the final state of each slide | `false` |
+| `handout-mode` | bool | Handout mode: collapses all `{{< pause >}}` steps, showing only the final state of each slide. **Must be declared at the root level of the YAML** (see [Handout Mode](#handout-mode)) | `false` |
 
 ### Color Values
 
@@ -83,7 +84,6 @@ format:
     accent-color: "#eb811b"
     font-size: "20pt"
     section-level: 2
-    handout: false            # set to true to generate a handout PDF
     slide-numbering: false
     toc-slide: true
     toc-levels: 2
@@ -133,7 +133,7 @@ The `section-level` parameter controls which heading level separates section sli
 | `3` | H1, H2 | H3, H4, H5 |
 | `4` | H1, H2, H3 | H4, H5 |
 
-> **Note:** The parameter is named `section-level` (not `slide-level`) because `slide-level` is a reserved Pandoc option and would be intercepted before reaching the Lua filter.
+> **Note:** The parameter is named `section-level` (not `slide-level`) because `slide-level` is a reserved Pandoc option and would be intercepted before reaching the Lua filter. Similarly, `handout-mode` is used instead of `handout` (a Quarto/Beamer reserved word) and must be placed at the root level of the YAML — see [Handout Mode](#handout-mode).
 
 **Example with `section-level: 3`:**
 
@@ -206,17 +206,56 @@ This is particularly useful for:
 
 ## Handout Mode
 
-Set `handout: true` to generate a handout PDF. In handout mode, Touying collapses all incremental steps (`{{< pause >}}`) into a single slide showing all content at once. Each logical slide produces exactly one page, which is ideal for distributing to students or printing.
+Set `handout-mode: true` to generate a handout PDF. In handout mode, Touying collapses all incremental steps (`{{< pause >}}`) into a single slide showing all content at once. Each logical slide produces exactly one page, which is ideal for distributing to students or printing.
+
+> **Important:** `handout-mode` must be declared at the **root level** of the YAML front matter, not under `format:`. Quarto intercepts both `handout` (reserved word for Beamer) and format-level boolean options in a way that prevents the value from reaching the Typst template. Placing it at the root level bypasses this.
+
+The recommended workflow is a separate file (e.g., `my-slides-handout.qmd`) that includes the source presentation and adds `handout-mode: true` at the root:
+
+```yaml
+---
+title: "My Presentation"
+subtitle: "Subtitle"
+author: "Author Name"
+date: today
+institute: "University"
+handout-mode: true          # ← root level, NOT under format:
+
+format:
+  qmd-ptm-ty-slides-typst:
+    aspect-ratio: "16-9"
+    header-color: "#003f72"
+    # ... same options as the original slides file ...
+---
+
+{{< include my-slides.qmd >}}
+```
+
+The source file `my-slides.qmd` does not need any `handout-mode` key — the default is `false`, handled by the Lua filter when the key is absent.
+
+> **Note:** Handout mode is handled entirely by Touying (`config-common(handout: true)`). The `{{< pause >}}` shortcodes do not need to be removed from the source file.
+
+## Display Math Centering
+
+By default, display math equations (`$$...$$`) are centered across the full text column width, even when nested inside a list. Without this correction, Typst would apply the list's accumulated indentation to the equation, shifting it off-center.
+
+This behavior is controlled by the `center-equations` option, which is `true` by default. To disable it and use Typst's native equation placement:
 
 ```yaml
 format:
-  touying-slides-typst:
-    handout: true
+  qmd-ptm-ty-slides-typst:
+    center-equations: false
 ```
 
-A typical workflow is to keep `handout: false` during slide authoring and switch to `handout: true` for the distributable version. Since this is the only change needed, you can also manage it via a profile or a separate output target in `_quarto.yml`.
-
-> **Note:** Handout mode is handled entirely by Touying (`config-common(handout: true)`). The `{{< pause >}}` shortcodes do not need to be removed from the source file.
+> **Note:** If disabling from within `format:` has no effect (due to Quarto's format-level boolean merging), set it at the root level of the YAML instead:
+> ```yaml
+> ---
+> center-equations: false
+> format:
+>   qmd-ptm-ty-slides-typst:
+>     ...
+> ---
+> ```
 
 ## Shortcodes
 
