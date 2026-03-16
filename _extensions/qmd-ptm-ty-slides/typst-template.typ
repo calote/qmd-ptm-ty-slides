@@ -2,7 +2,7 @@
 // Plantilla principal para touying-slides
 // Integra el paquete Touying con el tema "metropolis"
 
-#import "@preview/touying:0.6.1": *
+#import "@preview/touying:0.6.3": *
 #import themes.metropolis: *
 
 // ── Función principal del documento ──────────────────────────────────────────
