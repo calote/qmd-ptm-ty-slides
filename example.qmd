@@ -334,10 +334,10 @@ Alternativa no paramétrica:
 
    $$ n L_x = T_x - T_{x+n}$$
 
-   * Trabajando desde el inicio de la tabla de vida:
+   * Trabajando desde el inicio de la tabla de vida $\boxed{TMI}$:
    
      $$ n L_x = \frac{n}{2} (l_x + l_{x+n})$$
 
-     $$ n L_x = T_x - T_{x+n}$$
+     $$ {}_n L_x = \boxed{ T_x - T_{x+n}}$$
 
 4. Población total de edad $x$ y superior.

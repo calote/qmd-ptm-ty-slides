@@ -36,6 +36,7 @@ contributes:
       filters:
         - typst-classes.lua   # Convierte {.alert}, {.emph}, etc. a funciones Typst 
         - slides-headings.lua
+        - boxed-filter.lua
       execute:
         echo: false
         warning: false
