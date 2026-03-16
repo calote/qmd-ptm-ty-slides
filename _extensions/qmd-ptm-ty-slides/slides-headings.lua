@@ -621,6 +621,13 @@ function Pandoc(doc)
       else
         anchor = '\n#only(1)[#metadata(none) <' .. lbl .. '>]'
       end
+      -- Advertir en consola si el heading no tiene contenido (generará transparencia en blanco)
+      if #slide_content == 0 then
+        io.stderr:write(
+          "[touying-slides] AVISO: transparencia en blanco — \"" ..
+          raw_title .. "\" (H" .. lvl .. ") no tiene contenido antes del siguiente heading.\n"
+        )
+      end
       emit_content_slides(slide_content, title_typst, anchor)
 
     else
