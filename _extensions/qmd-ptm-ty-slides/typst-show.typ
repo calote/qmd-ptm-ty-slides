@@ -20,6 +20,9 @@
   }
   block(fill: fill, width: 100%, inset: 8pt, radius: 2pt, blocks)
 }
+$if(lang)$
+  #set text(lang: "$lang$")
+$endif$
 
 $-- Sobrescribe #alert de Touying con una función simple basada en text().          --$
 $-- Touying define alert() con touying-fn-wrapper, lo que hace que siempre          --$
