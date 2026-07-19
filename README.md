@@ -505,6 +505,87 @@ _extensions/touying-slides/
 └── typst-classes.lua       # Converts Span/Div classes to Typst functions
 ```
 
+## Gallery of Examples
+
+The `tests/regresion/` directory contains individual `.qmd` files that demonstrate specific features. Each file can be rendered independently with:
+
+```bash
+quarto render tests/regresion/test-<name>.qmd
+```
+
+### Basic features
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-default.qmd`](tests/regresion/test-default.qmd) | Default configuration with `section-level: 2`, text, lists, code, tables |
+| [`test-colors.qmd`](tests/regresion/test-colors.qmd) | Custom `header-color`, `section-color`, `section-color-2`, `accent-color` |
+| [`test-section-level.qmd`](tests/regresion/test-section-level.qmd) | `section-level: 3` (H1+H2 as section slides) |
+| [`test-handout.qmd`](tests/regresion/test-handout.qmd) | `handout-mode: true` with collapsed pauses |
+
+### Slide numbering
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-slide-numbering.qmd`](tests/regresion/test-slide-numbering.qmd) | `slide-numbering: true` — hierarchical prefixes |
+| [`test-slide-numbering-min-level.qmd`](tests/regresion/test-slide-numbering-min-level.qmd) | `slide-numbering-min-level: 2` — skip numbering on H1 |
+
+### Table of Contents
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-toc-slide.qmd`](tests/regresion/test-toc-slide.qmd) | `toc-slide: true`, `toc-columns: 2`, `toc-levels: 3` |
+
+### Shortcodes
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-pause-fontsize.qmd`](tests/regresion/test-pause-fontsize.qmd) | `{{< pause >}}` and `{{< fontsize >}}` |
+
+### Layouts
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-two-columns.qmd`](tests/regresion/test-two-columns.qmd) | `.cols`/`.col` two-column layout with gutter and pause |
+| [`test-columns-in-conditional.qmd`](tests/regresion/test-columns-in-conditional.qmd) | `.cols` inside `.content-visible` conditional block |
+
+### Conditional content
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-conditional-blocks.qmd`](tests/regresion/test-conditional-blocks.qmd) | `when-meta` conditional blocks with equations |
+
+### Code and figures
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-code-bg.qmd`](tests/regresion/test-code-bg.qmd) | `code-bg-color` and `output-bg-color` |
+| [`test-figure-bg.qmd`](tests/regresion/test-figure-bg.qmd) | Figures without `output-bg-color`, also in columns |
+
+### Equations and math
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-center-equations.qmd`](tests/regresion/test-center-equations.qmd) | `center-equations: true` — equations in lists |
+| [`test-math-boxed.qmd`](tests/regresion/test-math-boxed.qmd) | `\boxed{}` LaTeX translated to Typst |
+
+### Div/Span classes
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-alert-classes.qmd`](tests/regresion/test-alert-classes.qmd) | `.alert`, `.emph`, `.center`, `.right`, `.left` |
+
+### Blank slide omission
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-empty-heading-skip.qmd`](tests/regresion/test-empty-heading-skip.qmd) | Empty headings skipped (no slide, no TOC entry) |
+
+### Citations
+
+| Test file | Features demonstrated |
+|-----------|---------------------|
+| [`test-citations.qmd`](tests/regresion/test-citations.qmd) | Citations with `@key` and `[@key; @key]` |
+
 ## Requirements
 
 - [Quarto](https://quarto.org/) ≥ 1.4
