@@ -41,6 +41,7 @@ quarto render my-presentation.qmd
 | `font-size` | string | Global document font size | `"20pt"` |
 | `section-level` | int | Minimum heading level for content slides; levels below become section slides | `2` |
 | `slide-numbering` | bool | Add hierarchical prefixes to slide titles (e.g., "1.2.3 Title") | `false` |
+| `slide-numbering-min-level` | int | Minimum heading level that shows a number; `2` hides numbers on H1 and drops the first component on lower levels ("1.2.3" → "2.3") | `1` |
 | `toc-slide` | bool | Insert a table of contents slide | `false` |
 | `toc-levels` | int | Heading depth shown in TOC (1 = H1 only, 2 = H1+H2, etc.) | `1` |
 | `toc-font-size` | string | Font size for TOC entries | `"1em"` |
@@ -158,6 +159,14 @@ format:
 ```
 
 When a section-level heading has content after it (before the next heading), that content is automatically placed in a regular `#slide` with the same title, immediately following the section slide.
+
+### Blank slide omission
+
+Headings followed immediately by another heading (no content in between) no longer generate an empty slide. This avoids blank pages in the PDF. The omitted heading is also excluded from the Table of Contents to prevent broken links. A warning is printed to the console during rendering:
+
+```
+[touying-slides] AVISO: transparencia omitida — "3.4 Correlación" (H2) no tiene contenido antes del siguiente heading.
+```
 
 ### Per-level section colors (`section-color-N`)
 
@@ -350,6 +359,41 @@ Use nested divs for side-by-side columns:
 
 The `gutter` attribute controls the spacing between columns (any valid Typst length, e.g., `"1em"`, `"20pt"`).
 
+### Columns inside conditional blocks
+
+The `.cols`/`.col` layout works seamlessly inside conditional blocks (`.content-visible when-meta=...`). The filter recursively unwraps Quarto's internal `ConditionalBlock` and inert div nodes to find nested column structures. This enables content adapted to slides vs. other formats within the same `.qmd`:
+
+```markdown
+::::::{.content-visible when-meta="es-slides"}
+
+:::::{.cols gutter="0.1em"}
+::::{.col}
+**Left column**
+```{r}
+#| echo: true
+cor(x, y)
+```
+::::
+
+::::{.col}
+```{r}
+#| echo: false
+#| out.width: "80%"
+ggplot(...)
+```
+::::
+:::::
+
+{{< pause >}}
+
+Additional text after the pause...
+::::::
+```
+
+> **Note:**  
+> - Use `.cols`/`.col`, not `layout-ncol=2`. Quarto extracts `echo: true` source code outside of `#grid` in the Typst output when using `layout-ncol`, breaking the column layout.  
+> - Figure dimensions must fit within the column width (use `out.width` or absolute sizing) — overflow breaks Touying's pagination and `#pause` synchronization.
+
 ## Code Block Styling
 
 The extension supports independent background colors for source code and execution output.
@@ -390,6 +434,10 @@ output-bg-color: "none"  # output with no background
 
 > **Important:** `"none"` must be quoted. Unquoted `none` is parsed as YAML null and the default color is applied.
 
+### Figures and plots in output blocks
+
+Figure output (`cell-output-display`) is **not** wrapped in the `output-bg-color` background. This prevents a colored rectangle from appearing around ggplot2 graphs inside narrow columns. Console output (`cell-output-stdout`) and error output (`cell-output-error`) are still colored normally.
+
 ## Color Mapping
 
 The extension maps YAML parameters to Touying Metropolis theme variables:
@@ -414,6 +462,23 @@ When `slide-numbering: true`, slide titles receive hierarchical numeric prefixes
 #### More          → "1.1.1. More"
 ```
 
+### Minimum numbering level (`slide-numbering-min-level`)
+
+Control from which heading level the number is shown:
+
+```yaml
+slide-numbering-min-level: 2
+```
+
+With this setting, H1 slides show no number, and lower-level numbers drop the first component:
+
+```
+# Module 1         → section slide (no number)
+## Introduction    → "1. Introduction"        (H2 → "1")
+### Details        → "1.1. Details"           (H3 → "1.1")
+#### More          → "1.1.1. More"            (H4 → "1.1.1")
+```
+
 ## Table of Contents
 
 Enable with `toc-slide: true`. The TOC is inserted after the title slide and before the first section. Each entry is a clickable PDF link that jumps to the corresponding slide.
@@ -428,14 +493,14 @@ toc-levels: 3
 toc-columns: 2
 ```
 
-## Extension File Structure
+## Extension File Structure (v0.4.0)
 
 ```
 _extensions/touying-slides/
 ├── _extension.yml          # Extension metadata and configuration
 ├── typst-template.typ      # Main Typst template (slides() function)
 ├── typst-show.typ          # Pandoc template connecting YAML to Typst
-├── slides-headings.lua     # Main filter: headings → slides, TOC, code block coloring
+├── slides-headings.lua     # Main filter: headings → slides, TOC, code block coloring, blank slide omission
 ├── shortcodes.lua          # {{< pause >}} and {{< fontsize >}} shortcodes
 └── typst-classes.lua       # Converts Span/Div classes to Typst functions
 ```

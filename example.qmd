@@ -24,6 +24,8 @@ format:
     code-bg-color: "#dce8ff"    # azul claro para código fuente
     output-bg-color: "#99bb00" #"#e8f5e9"  # verde claro para resultados
     keep-typ: true
+    metadata:
+      es-slides: true
     section-level: 2
     slide-numbering: true
     toc-slide: true
@@ -32,18 +34,14 @@ format:
     toc-font-size: "1em"
     toc-title: "Índice"
 
-  typst:
-    toc: true
-    header-includes: |
-      #let alert(body) = text(fill: rgb("#cc0000"))[body]
   html:
     toc: true
-  pdf:
-    toc: true
-  beamer:
-    toc: true
-  revealjs:
-    toc: true
+  # pdf:
+  #   toc: true
+  # beamer:
+  #   toc: true
+  # revealjs:
+  #   toc: true
 ---
 
 # Bloque 1: Conceptos Básicos
@@ -311,6 +309,75 @@ Alternativa no paramétrica:
 - Menor potencia si hay normalidad
 :::::
 ::::
+
+## Correlación
+
+### Coeficiente de Correlación Lineal
+
+El coeficiente de correlación de Pearson ($r$) mide la fuerza y dirección de la relación lineal entre dos variables cuantitativas:
+
+$$
+r = \frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}
+         {\sqrt{\sum_{i=1}^{n} (x_i - \bar{x})^2 \;
+                 \sum_{i=1}^{n} (y_i - \bar{y})^2}}
+$$
+
+Sus valores oscilan entre $-1$ y $+1$:
+
+- $r = +1$: correlación positiva perfecta.
+- $r = -1$: correlación negativa perfecta.
+- $r \approx 0$: ausencia de relación lineal.
+
+---
+
+<!-- NOTA: para columnas en las transparencias se usa .cols/.col, no layout-ncol=2,
+     ya que Quarto extrae el código fuente de celdas echo: true fuera del #grid
+     en la salida Typst. -->
+
+::::::{.content-visible when-meta="es-slides"}
+
+:::::{.cols gutter="0.1em"}
+::::{.col}
+
+{{< fontsize 0.75em >}}
+
+**Correlación entre dos variables**
+```{r}
+#| echo: true
+set.seed(42)
+x_sl <- rnorm(100)
+y_sl <- 0.7 * x_sl + rnorm(100, sd = 0.5)
+cor(x_sl, y_sl)
+```
+
+{{< fontsize 1em >}}
+
+::::
+
+::::{.col}
+```{r}
+#| echo: false
+#| out.width: "80%"
+library(ggplot2)
+ggplot(data.frame(x_sl, y_sl), aes(x_sl, y_sl)) +
+  geom_point(alpha = 0.6, size = 2, color = "#3366cc") +
+  geom_smooth(method = "lm", se = TRUE,
+              color = "#F66733", fill = "#F66733", alpha = 0.2) +
+  labs(title = paste("r =", round(cor(x_sl, y_sl), 2))) +
+  theme_minimal()
+```
+::::
+:::::
+
+{{< pause >}}
+
+`#text(size: 0.85em)[`{=typst}
+
+**Interpretación**: Un valor de $r = `r round(cor(x_sl, y_sl), 2)`$ indica una correlación positiva fuerte. Esto significa que cuando una variable aumenta, la otra tiende a aumentar también, aunque existe una dispersión notable en torno a la recta de regresión.
+
+`]`{=typst}
+
+::::::
 
 ## Matemáticas indentadas
 

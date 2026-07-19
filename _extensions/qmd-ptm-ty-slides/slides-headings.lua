@@ -241,11 +241,18 @@ local function wrap_code_block(block, code_bg, output_bg, code_text)
       return result
     end
 
-    -- Div.cell-output*: salidas de la celda → fondo output_bg
+    -- Div.cell-output*: salidas de la celda
     for _, cls in ipairs(block.classes) do
+      -- cell-output-display (figuras, tablas): sin fondo para evitar colorear
+      -- el área alrededor del gráfico, sobre todo dentro de columnas estrechas.
+      if cls == "cell-output-display" then
+        local result = pandoc.List()
+        for _, child in ipairs(block.content) do result:insert(child) end
+        return result
+      end
+      -- Otras salidas (cell-output-stdout, cell-output-error, etc.): fondo output_bg
       if cls:find("^cell%-output") then
         if not output_bg then
-          -- sin fondo: desempaquetar sin bloque coloreado
           local result = pandoc.List()
           for _, child in ipairs(block.content) do result:insert(child) end
           return result
@@ -322,9 +329,62 @@ local function process_cols(block)
   return result
 end
 
+-- ── Búsqueda recursiva de .cols ───────────────────────────────────────────────
+--
+-- Los filtros internos de Quarto (content-meta, shortcodes, ...) se ejecutan
+-- ANTES que este filtro y, al resolver divs como .content-visible, dejan
+-- "cáscaras" de divs inertes (sin clases, id ni atributos) envolviendo el
+-- contenido. Un .cols que en el .qmd va dentro de uno de esos divs llega aquí
+-- enterrado varios niveles y process_cols() no lo vería en el nivel superior
+-- (las columnas quedarían apiladas en vertical en la diapositiva).
+--
+-- process_cols_deep() desciende por el árbol:
+--   - .cols                     → se convierte en #grid (vía process_cols)
+--   - ConditionalBlock          → Quarto vacía el contenido oculto antes de
+--                                 que corran los filtros de usuario; empaljar
+--                                 los hijos equivale exactamente a lo que hará
+--                                 su render() después → seguro y necesario para
+--                                 que .cols anidados dentro de .content-visible
+--                                 lleguen a process_cols
+--   - div inerte (sin clases/id/atributos) → se desenvuelve igualmente
+--   - cualquier otro div        → se devuelve intacto (no se tocan los divs con
+--                                 significado para Quarto: .cell, callouts, ...)
+local function process_cols_deep(block)
+  if block.t == "Div" then
+    if block.classes:includes("cols") then
+      return process_cols(block)
+    end
+    local no_id = (block.identifier == nil or block.identifier == "")
+    local ctype = block.attributes and block.attributes["__quarto_custom_type"]
+    local is_conditional = (ctype == "ConditionalBlock")
+    -- Consideramos "transparente" un div que no tiene clases propias y no es
+    -- un nodo custom de Quarto con semántica especial (callout, float, etc.).
+    -- Los ConditionalBlock (content-visible/hidden) son seguros de desenvolver
+    -- porque Quarto ya vació el contenido oculto antes de este filtro.
+    -- El node.node interno (div sin clases pero con attrs __quarto_custom*)
+    -- que actúa de contenedor del slot también se desenvuelve: su contenido
+    -- es el que nos importa (puede contener .cols).
+    local is_special = (ctype ~= nil and not is_conditional)
+    if #block.classes == 0 and no_id and not is_special then
+      local result = pandoc.List()
+      for _, child in ipairs(block.content) do
+        for _, pb in ipairs(process_cols_deep(child)) do
+          result:insert(pb)
+        end
+      end
+      return result
+    end
+  end
+  return pandoc.List { block }
+end
+
 -- ── Contador jerárquico ───────────────────────────────────────────────────────
 
 local counters = {0, 0, 0, 0, 0}
+
+-- Nivel mínimo de heading que muestra numeración (se ajusta en Pandoc() con
+-- el meta 'slide-numbering-min-level'). 1 = todos los niveles numerados.
+local numbering_min_level = 1
 
 local function bump(lvl)
   counters[lvl] = counters[lvl] + 1
@@ -332,15 +392,17 @@ local function bump(lvl)
 end
 
 local function make_prefix(lvl)
+  if lvl < numbering_min_level then return "" end
   local parts = {}
-  for l = 1, lvl do table.insert(parts, tostring(counters[l])) end
+  for l = numbering_min_level, lvl do table.insert(parts, tostring(counters[l])) end
   return table.concat(parts, ".") .. " "
 end
 
 -- Versión del cálculo de prefijo para el pre-paso (usa tabla local)
 local function make_prefix_with(ctrs, lvl)
+  if lvl < numbering_min_level then return "" end
   local parts = {}
-  for l = 1, lvl do table.insert(parts, tostring(ctrs[l])) end
+  for l = numbering_min_level, lvl do table.insert(parts, tostring(ctrs[l])) end
   return table.concat(parts, ".") .. " "
 end
 
@@ -350,6 +412,16 @@ function Pandoc(doc)
   local numbering  = meta_bool(doc.meta, "slide-numbering", false)
   local show_toc   = meta_bool(doc.meta, "toc-slide", false)
   local is_handout = meta_bool(doc.meta, "handout-mode", false)
+
+  -- ── Nivel mínimo de heading que recibe numeración ───────────────────────────
+  -- slide-numbering-min-level: 2 → los H1 no muestran número y los niveles
+  -- inferiores se numeran sin el primer componente ("1.2.3" → "2.3").
+  if doc.meta["slide-numbering-min-level"] then
+    local v = tonumber(pandoc.utils.stringify(doc.meta["slide-numbering-min-level"]))
+    if v then
+      numbering_min_level = math.max(1, math.min(5, math.floor(v)))
+    end
+  end
 
   -- ── slide-level: nivel mínimo para slides de contenido ──────────────────────
   -- Niveles 1 .. slide_level-1  →  section-slide (fondo de color)
@@ -418,9 +490,11 @@ function Pandoc(doc)
   -- Se hace en un único recorrido sobre doc.blocks para que las etiquetas
   -- (toc-slide-N) sean consistentes entre el pre-paso y el bucle principal.
   -- label_by_idx[i] = etiqueta del heading en la posición i de doc.blocks.
+  -- empty_lbls      = conjunto de etiquetas de headings sin contenido.
 
   local label_by_idx = {}
   local toc_items    = {}
+  local empty_lbls   = {}
 
   do
     local slide_counter  = 0
@@ -432,13 +506,33 @@ function Pandoc(doc)
         local lbl = "toc-slide-" .. slide_counter
         label_by_idx[idx] = lbl
 
-        -- Acumular en TOC solo los niveles solicitados
-        if show_toc and block.level <= toc_depth then
+        -- Detectar si este heading tiene contenido antes del siguiente heading
+        -- Solo para headings que sean slides de contenido (level >= slide_level);
+        -- los de sección (H1 cuando section-level=2) por diseño no llevan contenido.
+        local has_content = true
+        if block.level >= slide_level then
+          has_content = false
+          for j = idx + 1, #doc.blocks do
+            local nb = doc.blocks[j]
+            if nb.t == "Header" and nb.level >= 1 and nb.level <= 5 then break end
+            if nb.t ~= "HorizontalRule" then has_content = true; break end
+          end
+        end
+        if not has_content then empty_lbls[lbl] = true end
+
+        -- Incrementar contadores de numeración para TODOS los headings en el
+        -- orden de documento, para que sub-headings no hereden un 0 del nivel
+        -- del heading padre cuando este se excluye del TOC por estar vacío.
+        if numbering then
+          temp_counters[block.level] = temp_counters[block.level] + 1
+          for l = block.level + 1, 5 do temp_counters[l] = 0 end
+        end
+
+        -- Acumular en TOC solo los niveles solicitados (excluyendo vacíos)
+        if show_toc and block.level <= toc_depth and not empty_lbls[lbl] then
           local title         = inlines_to_text(block.content)
           local typst_content = inlines_to_typst_content(block.content)
           if numbering then
-            temp_counters[block.level] = temp_counters[block.level] + 1
-            for l = block.level + 1, 5 do temp_counters[l] = 0 end
             local prefix = make_prefix_with(temp_counters, block.level)
             title         = prefix .. title
             typst_content = prefix .. typst_content
@@ -483,7 +577,20 @@ function Pandoc(doc)
   -- El `first_title` y el `anchor` se colocan en el primer segmento NO VACÍO,
   -- de modo que si el contenido empieza con "------" el título no se pierde.
   -- Los segmentos siguientes crean slides con title: none.
+  -- Devuelve false si no se emitió ningún slide (todo el contenido está vacío).
   local function emit_content_slides(content, first_title, anchor)
+    -- Si no hay ningún bloque de contenido real, no emitir slide (evita páginas en blanco)
+    local has_real_content = false
+    for _, b in ipairs(content) do
+      if b.t ~= "HorizontalRule" then has_real_content = true; break end
+    end
+    if not has_real_content then
+      if anchor then
+        new_blocks:insert(pandoc.RawBlock("typst", anchor))
+      end
+      return false
+    end
+
     local segments = {}
     local current = pandoc.List()
     for _, b in ipairs(content) do
@@ -527,7 +634,7 @@ function Pandoc(doc)
           new_blocks:insert(pandoc.RawBlock("typst", anchor))
         end
         for _, cb in ipairs(segment) do
-          for _, pb in ipairs(process_cols(cb)) do
+          for _, pb in ipairs(process_cols_deep(cb)) do
             for _, wb in ipairs(wrap_code_block(pb, code_bg, output_bg, code_text)) do
               new_blocks:insert(wb)
             end
@@ -536,6 +643,7 @@ function Pandoc(doc)
         new_blocks:insert(pandoc.RawBlock("typst", ']'))
       end
     end
+    return true
   end
 
   -- Bucle principal: convertir headings en diapositivas según slide-level
@@ -621,18 +729,21 @@ function Pandoc(doc)
       else
         anchor = '\n#only(1)[#metadata(none) <' .. lbl .. '>]'
       end
-      -- Advertir en consola si el heading no tiene contenido (generará transparencia en blanco)
+      -- Heading sin contenido (p. ej. seguido inmediatamente de otro heading):
+      -- no se genera slide y se registra para excluirlo del TOC.
       if #slide_content == 0 then
         io.stderr:write(
-          "[touying-slides] AVISO: transparencia en blanco — \"" ..
+          "[touying-slides] AVISO: transparencia omitida — \"" ..
           raw_title .. "\" (H" .. lvl .. ") no tiene contenido antes del siguiente heading.\n"
         )
+        -- empty_lbls ya se rellenó en el pre-paso
+      else
+        emit_content_slides(slide_content, title_typst, anchor)
       end
-      emit_content_slides(slide_content, title_typst, anchor)
 
     else
       -- Bloque genérico: procesar .cols y código coloreado
-      for _, pb in ipairs(process_cols(block)) do
+      for _, pb in ipairs(process_cols_deep(block)) do
         for _, wb in ipairs(wrap_code_block(pb, code_bg, output_bg, code_text)) do
           new_blocks:insert(wb)
         end
