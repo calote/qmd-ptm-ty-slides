@@ -12,7 +12,6 @@ _site/
 /.luarc.json
 tests/*
 !tests/regresion/
-tests/regresion/_extensions/
 **/*.quarto_ipynb
 *.pdf
 !tests/regresion/*.pdf
