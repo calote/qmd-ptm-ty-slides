@@ -1,0 +1,33 @@
+---
+title: "Test — \\boxed{} LaTeX en Typst"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Traducción de `\boxed{}` LaTeX a Typst `#box(stroke: ...)`.
+
+# Sección
+
+## Boxed inline
+
+La fórmula $\boxed{E = m c^2}$ es famosa.
+
+## Boxed en display
+
+$$
+\boxed{\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}}
+$$
+
+## Boxed con texto alrededor
+
+$$
+\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i \qquad \boxed{\text{media muestral}}
+$$

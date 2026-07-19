@@ -1,0 +1,34 @@
+---
+title: "Test — Omisión de headings vacíos"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    slide-numbering: true
+    header-color: "#003f72"
+    section-level: 2
+    toc-slide: true
+    toc-levels: 3
+execute:
+  warning: false
+  message: false
+---
+
+Headings sin contenido (seguidos de otro heading) no generan slide ni aparecen en el TOC.
+
+# Tema
+
+## Con Contenido
+
+Este heading SÍ tiene contenido visible, por lo que genera una slide.
+
+### Sin Contenido
+
+#### Con Contenido Anidado
+
+Este H4 tiene contenido. El H3 intermedio ("Sin Contenido") se omite porque va seguido inmediatamente de H4 sin contenido propio.
+
+## Otro Con Contenido
+
+Texto de la última diapositiva.

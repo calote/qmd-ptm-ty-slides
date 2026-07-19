@@ -1,0 +1,36 @@
+---
+title: "Test — Ecuaciones centradas"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    center-equations: true
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Ecuaciones centradas incluso dentro de listas.
+
+# Sección
+
+## Ecuaciones en listas
+
+1. Media muestral:
+
+   $$ \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i $$
+
+2. Varianza muestral:
+
+   $$ s^2 = \frac{\sum_{i=1}^{n} (x_i - \bar{x})^2}{n-1} $$
+
+3. Desviación típica:
+
+   $$ s = \sqrt{s^2} $$
+
+## Ecuación inline
+
+La ecuación $\int_{a}^{b} f(x) \, dx$ es una integral definida.

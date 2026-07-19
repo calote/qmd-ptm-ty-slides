@@ -1,0 +1,43 @@
+---
+title: "Test — Shortcodes pause y fontsize"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Shortcodes `{{< pause >}}` y `{{< fontsize >}}`.
+
+# Sección
+
+## Revelado incremental
+
+Paso 1: visible al inicio.
+
+{{< pause >}}
+
+Paso 2: aparece tras clic.
+
+{{< pause >}}
+
+Paso 3: aparece al final.
+
+## Cambio de tamaño
+
+{{< fontsize 0.7em >}}
+
+Todo este texto tiene tamaño reducido al 70%.
+
+| Tabla | pequeña | con | fuente | reducida |
+|-------|---------|-----|--------|----------|
+| A     | B       | C   | D      | E        |
+
+{{< fontsize 1em >}}
+
+Vuelta al tamaño normal.

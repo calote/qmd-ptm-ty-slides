@@ -1,0 +1,37 @@
+---
+title: "Test — slide-numbering-min-level: 2"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    slide-numbering: true
+    slide-numbering-min-level: 2
+    section-level: 2
+    header-color: "#003f72"
+execute:
+  warning: false
+  message: false
+---
+
+slide-numbering-min-level: 2 — H1 sin número, inferiores sin el "1." inicial.
+
+# Bloque 1
+
+## Primera
+
+Numerado como "1" (sin el "1." de H1).
+
+### Sub
+
+Numerado como "1.1" (sin el "1." de H1).
+
+## Segunda
+
+Numerado como "2".
+
+# Bloque 2
+
+## Tercera
+
+Numerado como "1" (nuevo contexto tras H1).

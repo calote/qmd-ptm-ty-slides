@@ -1,0 +1,35 @@
+---
+title: "Test — Bloques condicionales .content-visible"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+    metadata:
+      es-slides: true
+execute:
+  warning: false
+  message: false
+---
+
+Bloques `.content-visible when-meta="es-slides"` para contenido exclusivo de slides.
+
+# Sección
+
+## Contenido condicional
+
+Texto visible en todos los formatos.
+
+::::::{.content-visible when-meta="es-slides"}
+
+Este texto SOLO se ve en el formato slides (cuando `es-slides` es `true`).
+
+$$
+r = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum (x_i - \bar{x})^2 \sum (y_i - \bar{y})^2}}
+$$
+
+::::::
+
+Texto visible de nuevo en todos los formatos.

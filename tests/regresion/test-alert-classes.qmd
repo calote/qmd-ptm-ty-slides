@@ -1,0 +1,40 @@
+---
+title: "Test — Clases .alert, .emph y alineación"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    accent-color: "#c0392b"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Clases Div/Span: alert, emph, center, right, left.
+
+# Sección
+
+## Alert y énfasis
+
+Texto normal, [texto destacado]{.alert}, [texto en cursiva]{.emph}.
+
+:::{.alert}
+Bloque completo alerta con color de acento.
+:::
+
+## Alineación
+
+:::{.center}
+Texto centrado.
+:::
+
+:::{.right}
+Texto a la derecha.
+:::
+
+:::{.left}
+Texto a la izquierda (por defecto).
+:::

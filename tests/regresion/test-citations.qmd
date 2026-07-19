@@ -1,0 +1,30 @@
+---
+title: "Test — Citas y referencias"
+author: "Test Suite"
+lang: es
+date: today
+bibliography: referencias.bib
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Citas bibliográficas con `referencias.bib` compartida.
+
+# Sección
+
+## Citas en diapositivas
+
+Según @Wickham2017, el análisis de datos es un proceso iterativo.
+
+El paquete `ggplot2` [@R-ggplot2] implementa la gramática de gráficos.
+
+Knuth [@knuth84] acuñó el término *literate programming*.
+
+## Citas múltiples
+
+Varios autores coinciden en la importancia de la reproducibilidad [@Wickham2017; @knuth84].

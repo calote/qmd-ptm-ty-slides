@@ -10,7 +10,9 @@ _site/
 .vscode/
 .Renviron
 /.luarc.json
-tests/
+tests/*
+!tests/regresion/
+tests/regresion/_extensions/
 **/*.quarto_ipynb
 *.pdf
 *.html

@@ -1,0 +1,34 @@
+---
+title: "Test — Numeración de diapositivas"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    slide-numbering: true
+    section-level: 2
+    header-color: "#003f72"
+execute:
+  warning: false
+  message: false
+---
+
+Numeración jerárquica en títulos: "1.1", "1.2", "1.2.1", etc.
+
+# Tema Principal
+
+## Primera Diapositiva
+
+Contenido numerado como "1.1".
+
+## Segunda Diapositiva
+
+Contenido numerado como "1.2".
+
+### Sub-diapositiva
+
+Numerada como "1.2.1".
+
+## Tercera Diapositiva
+
+Numerada como "1.3".

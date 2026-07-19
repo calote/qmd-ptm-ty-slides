@@ -1,0 +1,56 @@
+---
+title: "Test — Figura sin fondo de salida"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+    output-bg-color: "#99bb00"
+    code-bg-color: "#dce8ff"
+execute:
+  warning: false
+  message: false
+---
+
+Las figuras (`cell-output-display`) no deben tener el fondo verde de salida, solo el código fuente.
+
+# Sección
+
+## Código con salida
+
+```{r}
+# Código con fondo azul
+summary(mtcars$mpg)
+```
+
+## Figura sin fondo verde
+
+```{r}
+#| echo: false
+#| out.width: "80%"
+plot(mtcars$wt, mtcars$mpg,
+     main = "Consumo vs Peso",
+     xlab = "Peso", ylab = "MPG",
+     col = "#3366cc", pch = 16)
+```
+
+## Columna con figura
+
+::::{.cols gutter="1em"}
+::::{.col}
+Código a la izquierda:
+
+```{r}
+cor(mtcars$wt, mtcars$mpg)
+```
+::::
+::::{.col}
+```{r}
+#| echo: false
+#| out.width: "85%"
+plot(mtcars$wt, mtcars$mpg, pch = 16, col = "#c0392b")
+```
+::::
+::::

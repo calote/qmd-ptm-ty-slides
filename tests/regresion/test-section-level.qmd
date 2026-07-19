@@ -1,0 +1,30 @@
+---
+title: "Test — section-level: 3"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    section-level: 3
+    header-color: "#003f72"
+    section-color: "#003f72"
+    section-color-2: "#AB262D"
+    accent-color: "#eb811b"
+execute:
+  warning: false
+  message: false
+---
+
+Con section-level: 3, H1 y H2 son diapositivas de sección, H3–H5 son contenido.
+
+# Sección H1
+
+## Sección H2
+
+### Contenido H3
+
+Texto en diapositiva normal.
+
+#### Subsección H4
+
+Más contenido anidado.

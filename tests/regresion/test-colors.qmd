@@ -1,0 +1,29 @@
+---
+title: "Test — Colores personalizados"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#1a5276"
+    section-color: "#7B241C"
+    section-color-2: "#1a6b72"
+    accent-color: "#c0392b"
+    font-size: "18pt"
+    section-level: 3
+execute:
+  warning: false
+  message: false
+---
+
+Colores personalizados para cada nivel de sección. H1 y H2 son sección (section-level: 3).
+
+# Sección H1 — Rojo oscuro
+
+## Sección H2 — Verde azulado
+
+### Contenido H3
+
+Diapositiva normal con el color de acento [destacado]{.alert}.
+
+$$ E = m c^2 $$

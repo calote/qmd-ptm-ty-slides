@@ -1,0 +1,51 @@
+---
+title: "Test — Columnas dentro de condicional"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+    metadata:
+      es-slides: true
+execute:
+  warning: false
+  message: false
+---
+
+`.cols`/`.col` dentro de `.content-visible` — el filtro `process_cols_deep` desenvuelve los divs inertes.
+
+# Sección
+
+## Columnas condicionales
+
+::::::{.content-visible when-meta="es-slides"}
+
+:::::{.cols gutter="1em"}
+::::{.col}
+**Columna izquierda**
+
+- Elemento A
+- Elemento B
+
+``` r
+codigo <- "ejemplo"
+```
+::::
+
+::::{.col}
+**Columna derecha**
+
+| X | Y |
+|---|---|
+| 1 | 2 |
+| 3 | 4 |
+::::
+:::::
+
+{{< pause >}}
+
+Texto que aparece tras la pausa, debajo de las columnas.
+
+::::::

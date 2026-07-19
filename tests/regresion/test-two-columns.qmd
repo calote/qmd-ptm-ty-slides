@@ -1,0 +1,51 @@
+---
+title: "Test — Columnas .cols/.col con pausa"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+    font-size: "18pt"
+execute:
+  warning: false
+  message: false
+---
+
+Dos columnas con gutter personalizado y pausa incremental.
+
+# Bloque
+
+## Diseño en dos columnas
+
+::::{.cols gutter="2em"}
+:::::{.col}
+**Columna izquierda**
+
+- Elemento A
+- Elemento B
+- Elemento C
+
+$$
+\alpha + \beta = \gamma
+$$
+:::::
+:::::{.col}
+**Columna derecha**
+
+1. Primero
+2. Segundo
+3. Tercero
+
+> Cita en columna derecha.
+:::::
+::::
+
+{{< pause >}}
+
+Texto adicional que aparece tras la pausa, debajo de ambas columnas.
+
+{{< fontsize 0.8em >}}
+
+Este texto tiene fuente reducida.

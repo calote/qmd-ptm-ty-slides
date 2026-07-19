@@ -1,0 +1,36 @@
+---
+title: "Test — Modo Handout"
+author: "Test Suite"
+lang: es
+date: today
+handout-mode: true
+format:
+  qmd-ptm-ty-slides-typst:
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Modo handout: los `{{< pause >}}` colapsan, todo aparece en una sola página por slide.
+
+# Sección 1
+
+## Diapositiva con pausas
+
+Primer contenido visible.
+
+{{< pause >}}
+
+Segundo contenido tras la pausa.
+
+{{< pause >}}
+
+Tercer contenido tras la segunda pausa.
+
+# Sección 2
+
+## Otra diapositiva
+
+Contenido sin pausas.
