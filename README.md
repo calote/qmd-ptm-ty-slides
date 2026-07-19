@@ -2,6 +2,8 @@
 
 A Quarto extension for creating Typst-based slide presentations using the [Touying](https://touying-typ.github.io/) framework with the Metropolis theme.
 
+![Example slides animation](example-slides.gif)
+
 ## Table of Contents
 
 - [Installation](#installation)
