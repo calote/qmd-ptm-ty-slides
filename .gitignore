@@ -15,6 +15,7 @@ tests/*
 tests/regresion/_extensions/
 **/*.quarto_ipynb
 *.pdf
+!tests/regresion/*.pdf
 *.html
 .positai
 example-handout_cache
