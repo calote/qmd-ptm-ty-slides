@@ -13,6 +13,7 @@ _site/
 tests/
 **/*.quarto_ipynb
 *.pdf
+*.html
 .positai
 example-handout_cache
 example.typ
