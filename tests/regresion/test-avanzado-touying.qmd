@@ -1,0 +1,138 @@
+---
+title: "Ejemplo avanzado con código typst: touying y más"
+author: "Pedro L. Luque"
+subtitle: "Quarto+Typst+Touying"
+date: "2026-07-16"
+date-format: long
+institute: "Universidad de Sevilla"
+lang: es
+formato-typst-trans: true
+es-memoria: false
+es-slides: true
+format:
+  qmd-ptm-ty-slides-typst:
+    aspect-ratio: "16-9"
+    font-size: "18pt"
+    section-level: 3
+    header-color: "#003f72"
+    section-color: "#995276"
+    section-color-2: "#1a6b72"
+    accent-color: "#c0392b"
+    code-bg-color: "#dce8ff"
+    output-bg-color: "none"
+    keep-typ: true
+    slide-numbering: true
+    slide-numbering-min-level: 2
+    toc-slide: true
+    toc-levels: 3
+    toc-font-size: "1em"
+    toc-title: "Índice"
+    fig-format: png
+execute:
+  warning: false
+  message: false
+knitr:
+  opts_chunk:
+    fig.width: 12
+    fig.height: 10
+    dpi: 300
+---
+
+```{=typst}
+#import "@preview/cetz:0.5.2"
+#import "@preview/fletcher:0.5.8" as fletcher: node, edge
+
+// cetz and fletcher bindings for touying
+#let cetz-canvas = touying-reduce.with(cetz)
+#let fletcher-diagram = touying-reduce.with(fletcher)
+```
+
+# Ejemplo avanzado con código typst: touying y más
+
+## Ejemplos avanzados con Typst
+
+### CeTZ: canvas con pausas
+
+CeTZ se integra en Touying mediante `#cetz-canvas` con pausas:
+
+```{=typst}
+#cetz-canvas({
+  import cetz.draw: *
+  rect((0,0), (5,5))
+  (pause,)
+  rect((0,0), (1,1))
+  rect((1,1), (2,2))
+  rect((2,2), (3,3))
+  (pause,)
+  line((0,0), (2.5, 2.5), name: "line")
+})
+```
+
+### Fletcher: diagrama de estados
+
+Diagrama de estados con Fletcher y pausas:
+
+```{=typst}
+#fletcher-diagram(
+  node-stroke: .1em,
+  node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
+  spacing: 4em,
+  edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
+  node((0,0), `reading`, radius: 2em),
+  edge((0,0), (0,0), `read()`, "--|>", bend: 130deg),
+  pause,
+  edge(`read()`, "-|>"),
+  node((1,0), `eof`, radius: 2em),
+  pause,
+  edge(`close()`, "-|>"),
+  node((2,0), `closed`, radius: 2em, extrude: (-2.5, 0)),
+  edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
+)
+```
+
+### Ecuaciones Touying con pausa
+
+Ecuación con revelado incremental mediante `pause`:
+
+```{=typst}
+$
+  f(x) &= pause x^2 + 2x + 1  \
+       &= pause (x + 1)^2  \
+$
+```
+
+
+
+```{=typst}
+
+]
+
+#slide(repeat: 3, self => [
+  #let (uncover, only, alternatives) = utils.methods(self)
+
+  $
+    f(x) &= pause x^2 + 2x + uncover("3-", 1)  \
+         &= pause (x + 1)^2  \
+  $
+])
+
+
+
+
+#slide[
+  Touying equation with pause:
+
+  $
+    f(x) &= pause x^2 + 2x + 1  \
+         &= pause (x + 1)^2  \
+  $
+
+  #meanwhile
+
+  Touying equation is very simple.
+
+
+
+```
+
+

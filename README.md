@@ -663,6 +663,12 @@ Pre-rendered PDFs are also included in the directory for quick visual reference.
 | [`test-center-equations.qmd`](tests/regresion/test-center-equations.qmd) | [📄](tests/regresion/test-center-equations.pdf) | `center-equations: true` — equations in lists |
 | [`test-math-boxed.qmd`](tests/regresion/test-math-boxed.qmd) | [📄](tests/regresion/test-math-boxed.pdf) | `\boxed{}` LaTeX translated to Typst |
 
+### Advanced / raw Typst (CeTZ, Fletcher)
+
+| Test file | PDF preview | Features demonstrated |
+|-----------|-------------|---------------------|
+| [`test-avanzado-touying.qmd`](tests/regresion/test-avanzado-touying.qmd) | [📄](tests/regresion/test-avanzado-touying.pdf) | CeTZ canvas with pauses, Fletcher state diagram, Touying equations with `pause` |
+
 ### Div/Span classes
 
 | Test file | PDF preview | Features demonstrated |
