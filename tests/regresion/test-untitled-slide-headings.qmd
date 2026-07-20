@@ -1,0 +1,62 @@
+---
+title: "Test — untitled-slide-headings"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    aspect-ratio: "16-9"
+    header-color: "#003f72"
+    accent-color: "#eb811b"
+    font-size: "20pt"
+    section-level: 2
+    untitled-slide-headings: true
+execute:
+  warning: false
+  message: false
+---
+
+Test de `untitled-slide-headings: true`: las diapositivas creadas con `---`
+deben mostrar `↳ ÚltimoHeading` como título.
+
+# Bloque 1
+
+## Sin continuación
+
+Diapositiva normal, sin `---`. Solo una slide.
+
+## Con una continuación
+
+Contenido de la primera slide.
+
+---
+
+Segunda slide: debe mostrar **↳ Con una continuación** en la barra de título.
+
+## Con dos continuaciones
+
+Primera slide.
+
+---
+
+Segunda slide con `↳ Con dos continuaciones`.
+
+---
+
+Tercera slide también con `↳ Con dos continuaciones`.
+
+## Heading vacío seguido de ---
+
+---
+
+El título del heading se traslada aquí: `↳ Heading vacío seguido de ---`.
+
+# Bloque 2
+
+## Con math en título $\bar{x} = \frac{1}{n}\sum x_i$
+
+Primera slide con ecuación en título.
+
+---
+
+Continuación: debe mostrar `↳` seguido de la ecuación en Typst.

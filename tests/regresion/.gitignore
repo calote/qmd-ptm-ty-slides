@@ -1,3 +1,4 @@
 *.html
+*.typ
 *_files/
 .quarto/

@@ -1,6 +1,6 @@
 title: "Prepare Teaching Materials with Quarto: Touying Slides (typst)"
 author: qmd-ptm-ty-slides
-version: "0.5.0"
+version: "0.5.3"
 quarto-required: ">=1.4.0"
 contributes:
   shortcodes:
@@ -34,6 +34,7 @@ contributes:
       code-bg-color: "e8f0fe"    # Fondo código fuente (hex con/sin "#", o "none" para desactivar)
       output-bg-color: "f0f4e8"  # Fondo salidas/resultados (hex con/sin "#", o "none")
       # code-text-color: "2b2b2b"  # Color del texto en bloques de código (hex con/sin "#")
+      untitled-slide-headings: false  # Muestra "↳ ÚltimoHeading" en transparencias sin título (---)
       template-partials:
         - typst-template.typ
         - typst-show.typ

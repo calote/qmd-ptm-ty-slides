@@ -412,6 +412,7 @@ function Pandoc(doc)
   local numbering  = meta_bool(doc.meta, "slide-numbering", false)
   local show_toc   = meta_bool(doc.meta, "toc-slide", false)
   local is_handout = meta_bool(doc.meta, "handout-mode", false)
+  local untitled_headings = meta_bool(doc.meta, "untitled-slide-headings", false)
 
   -- ── Nivel mínimo de heading que recibe numeración ───────────────────────────
   -- slide-numbering-min-level: 2 → los H1 no muestran número y los niveles
@@ -632,6 +633,8 @@ function Pandoc(doc)
         local title_str
         if is_title and first_title ~= nil then
           title_str = first_title  -- ya formateado como "[contenido Typst]"
+        elseif untitled_headings and first_title ~= nil then
+          title_str = "[↳ " .. first_title:sub(2)
         else
           title_str = "none"
         end

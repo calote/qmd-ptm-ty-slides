@@ -126,6 +126,7 @@ quarto render my-presentation.qmd
 | `code-bg-color` | string | Background color for source code blocks; use `"none"` to disable | `"e8f0fe"` |
 | `output-bg-color` | string | Background color for code output blocks; use `"none"` to disable | `"f0f4e8"` |
 | `code-text-color` | string | Text color inside source code blocks; if omitted, uses the theme default | *(theme default)* |
+| `untitled-slide-headings` | bool | Show the last heading as title on slides created by `---` (continuation slides), prefixed with `↳` | `false` |
 | `handout-mode` | bool | Handout mode: collapses all `{{< pause >}}` steps, showing only the final state of each slide. **Must be declared at the root level of the YAML** (see [Handout Mode](#handout-mode)) | `false` |
 
 ### Color Values
@@ -280,6 +281,31 @@ This is particularly useful for:
 
 - Showing a code block on one slide and its output on the next, without repeating the title.
 - Creating full-content slides (e.g., a large figure) that look cleaner without a title bar.
+
+### Showing headings on continuation slides
+
+By default, continuation slides have **no title bar**. To show the last heading as a title on these slides, enable `untitled-slide-headings`:
+
+```yaml
+format:
+  qmd-ptm-ty-slides-typst:
+    untitled-slide-headings: true
+```
+
+When enabled, each continuation slide displays the last heading text prefixed with `↳`:
+
+```markdown
+## Análisis de datos
+
+- Normalidad
+- Homocedasticidad
+
+---
+
+- Contrastes post-hoc
+```
+
+The second slide will show **↳ Análisis de datos** as its title bar.
 
 > **Note:** In previous versions of the extension, `---` inside a slide rendered as a visual horizontal rule (`#horizontalrule`). If you need a decorative horizontal rule inside a slide, use a raw Typst block instead:
 > ````markdown
@@ -681,6 +707,12 @@ Pre-rendered PDFs are also included in the directory for quick visual reference.
 | Test file | PDF preview | Features demonstrated |
 |-----------|-------------|---------------------|
 | [`test-empty-heading-skip.qmd`](tests/regresion/test-empty-heading-skip.qmd) | [📄](tests/regresion/test-empty-heading-skip.pdf) | Empty headings skipped (no slide, no TOC entry) |
+
+### Continuation slides
+
+| Test file | PDF preview | Features demonstrated |
+|-----------|-------------|---------------------|
+| [`test-untitled-slide-headings.qmd`](tests/regresion/test-untitled-slide-headings.qmd) | [📄](tests/regresion/test-untitled-slide-headings.pdf) | `untitled-slide-headings: true` — `↳` headings on `---` continuation slides |
 
 ### Citations
 
