@@ -1,0 +1,112 @@
+---
+title: "Test — TOC alineado arriba"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    toc-slide: true
+    toc-levels: 3
+    toc-columns: 2
+    toc-vertical-align: "top"
+    toc-font-size: "0.85em"
+    toc-title: "Índice"
+    slide-numbering: true
+    header-color: "#003f72"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+TOC con 2 columnas y alineación vertical superior.
+
+# Módulo 1
+
+## Lección 1
+
+Contenido A.
+
+### Detalle 1
+
+Sub-contenido.
+
+### Detalle 2
+
+Sub-contenido.
+
+## Lección 2
+
+Contenido B.
+
+# Módulo 2
+
+## Lección 3
+
+Contenido C.
+
+
+# Módulo 3
+
+## Lección 1
+
+Contenido A.
+
+### Detalle 1
+
+Sub-contenido.
+
+### Detalle 2
+
+Sub-contenido.
+
+## Lección 2
+
+Contenido B.
+
+
+# Módulo 4
+
+## Lección 1
+
+Contenido A.
+
+### Detalle 1
+
+Sub-contenido.
+
+### Detalle 2
+
+Sub-contenido.
+
+## Lección 2
+
+Contenido B.
+
+
+# Módulo 5
+
+## Lección 1
+
+Contenido A.
+
+### Detalle 1
+
+Sub-contenido.
+
+### Detalle 2
+
+Sub-contenido.
+
+## Lección 2
+
+Contenido B.
+
+# Módulo 6
+
+## Lección 3
+
+Contenido C.
+
+
+

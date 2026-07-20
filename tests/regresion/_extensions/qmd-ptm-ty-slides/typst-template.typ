@@ -114,12 +114,8 @@ $endif$
 // Cada entrada es un enlace PDF que salta a la diapositiva correspondiente.
 // Los niveles > 1 se indentan 1.5em por nivel y se muestran en peso normal.
 // Con columns >= 2, los ítems se reparten equitativamente entre columnas.
-#let toc-slide(items: (), font-size: 1em, title: "Contenido", columns: 1) = slide(
-  title: title,
-)[
-  #set text(size: font-size)
-  // Helper: renderiza una columna de ítems TOC
-  #let render-col(col-items) = stack(
+#let toc-slide(items: (), font-size: 1em, title: "Contenido", columns: 1, body-align: "center") = {
+  let render-col(col-items) = stack(
     dir: ttb,
     spacing: 0.45em,
     ..col-items.map(item => pad(
@@ -131,21 +127,52 @@ $endif$
       }
     ))
   )
-  #if columns >= 2 {
-    // Dividir ítems en N grupos iguales
-    let n    = calc.max(1, columns)
-    let size = calc.ceil(items.len() / n)
-    let chunks = range(n).map(i => {
-      let start = i * size
-      let end   = calc.min(start + size, items.len())
-      if start < items.len() { items.slice(start, end) } else { () }
-    })
-    grid(
-      columns: range(n).map(_ => 1fr),
-      column-gutter: 2em,
-      ..chunks.map(chunk => render-col(chunk))
-    )
-  } else {
-    render-col(items)
+  let toc-content = {
+    if columns >= 2 {
+      // Agrupar ítems por secciones H1
+      let groups = {
+        let result = ()
+        let current = ()
+        for item in items {
+          if item.level == 1 {
+            if current.len() > 0 { result += (current,) }
+            current = (item,)
+          } else {
+            current += (item,)
+          }
+        }
+        if current.len() > 0 { result += (current,) }
+        result
+      }
+      // Distribuir grupos completos entre columnas
+      let n_cols  = calc.max(1, columns)
+      let g_p_col = calc.ceil(groups.len() / n_cols)
+      let col-data = range(n_cols).map(i => {
+        let start = i * g_p_col
+        let end   = calc.min(start + g_p_col, groups.len())
+        if start < groups.len() {
+          let flat = ()
+          for g in groups.slice(start, end) {
+            for item in g { flat += (item,) }
+          }
+          flat
+        } else { () }
+      })
+      grid(
+        columns: range(n_cols).map(_ => 1fr),
+        column-gutter: 2em,
+        ..col-data.map(chunk => render-col(chunk))
+      )
+    } else {
+      render-col(items)
+    }
   }
-]
+  slide(title: title)[
+    #set text(size: font-size)
+    #if body-align == "top" {
+      align(top, toc-content)
+    } else {
+      toc-content
+    }
+  ]
+}

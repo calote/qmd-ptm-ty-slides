@@ -121,6 +121,7 @@ quarto render my-presentation.qmd
 | `toc-font-size` | string | Font size for TOC entries | `"1em"` |
 | `toc-title` | string | Title of the TOC slide | `"Contenido"` |
 | `toc-columns` | int | Number of columns in the TOC slide (1 = single column, 2 = two columns, etc.) | `1` |
+| `toc-vertical-align` | string | Vertical alignment of TOC content: `"center"` (vertically centered) or `"top"` (aligned to top) | `"center"` |
 | `center-equations` | bool | Center display math (`$$...$$`) correcting accumulated list indentation | `true` |
 | `code-bg-color` | string | Background color for source code blocks; use `"none"` to disable | `"e8f0fe"` |
 | `output-bg-color` | string | Background color for code output blocks; use `"none"` to disable | `"f0f4e8"` |

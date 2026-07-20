@@ -455,6 +455,11 @@ function Pandoc(doc)
     toc_columns = math.max(1, math.floor(toc_columns))
   end
 
+  local toc_valign = "center"
+  if doc.meta["toc-vertical-align"] then
+    toc_valign = pandoc.utils.stringify(doc.meta["toc-vertical-align"])
+  end
+
   -- ── Normalizar colores de tema: quitar "#" inicial para Typst rgb() ──────────
   for _, key in ipairs({ "header-color", "section-color", "accent-color", "primary-color" }) do
     if doc.meta[key] then
@@ -564,10 +569,11 @@ function Pandoc(doc)
     local items_str = "(" .. table.concat(typst_items, ", ") .. ",)"
     new_blocks:insert(pandoc.RawBlock("typst",
       '#toc-slide(' ..
-        'items: '    .. items_str               .. ', ' ..
-        'font-size: '.. toc_font_size           .. ', ' ..
-        'columns: '  .. toc_columns             .. ', ' ..
-        'title: "'   .. escape_typst(toc_title) .. '"'  ..
+        'items: '        .. items_str               .. ', ' ..
+        'font-size: '    .. toc_font_size           .. ', ' ..
+        'columns: '      .. toc_columns             .. ', ' ..
+        'title: "'       .. escape_typst(toc_title) .. '", ' ..
+        'body-align: "'  .. toc_valign              .. '"'  ..
       ')'
     ))
   end
