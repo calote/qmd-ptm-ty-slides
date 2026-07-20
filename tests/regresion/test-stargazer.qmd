@@ -1,0 +1,50 @@
+---
+title: "Test — Tema Stargazer"
+author: "Test Suite"
+lang: es
+date: today
+format:
+  qmd-ptm-ty-slides-typst:
+    aspect-ratio: "16-9"
+    stargazer: true
+    header-color: "#1a5276"
+    accent-color: "#c0392b"
+    font-size: "20pt"
+    section-level: 2
+execute:
+  warning: false
+  message: false
+---
+
+Tema Stargazer: H1 como sección, H2–H5 como contenido.
+
+# Bloque 1
+
+## Diapositiva de Contenido
+
+Esto es una diapositiva normal con **texto**, _énfasis_ y una ecuación:
+
+$$
+\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
+$$
+
+## Listas y código
+
+- Elemento A
+- Elemento B
+- Elemento C
+
+``` r
+# Código estático
+x <- c(1, 2, 3)
+mean(x)
+```
+
+# Bloque 2
+
+## Tabla
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | 1    | 2    |
+| B    | 3    | 4    |

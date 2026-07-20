@@ -93,4 +93,10 @@ $-- lo aplique via set text() en su scope, evitando slides implícitos en blanco
 $if(font-size)$
   font-size: $font-size$,
 $endif$
+$if(stargazer)$
+  theme: "stargazer",
+$endif$
+$if(theme)$
+  theme: "$theme$",
+$endif$
 )

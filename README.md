@@ -20,11 +20,67 @@ A Quarto extension for creating Typst-based slide presentations using the [Touyi
 
 ## Installation
 
+Pick **one** of the three install modes.
+
+### A) Install into an existing Quarto project
+
 ```bash
 quarto add calote/qmd-ptm-ty-slides
 ```
 
-Or copy the `_extensions/qmd-ptm-ty-slides/` folder into your project.
+To overwrite a previous install without interactive prompts:
+
+```bash
+quarto add calote/qmd-ptm-ty-slides --no-prompt
+```
+
+This copies `_extensions/qmd-ptm-ty-slides/` into your project.
+
+### B) Use the GitHub template
+
+```bash
+quarto use template calote/qmd-ptm-ty-slides
+```
+
+This clones the repo, drops you in a folder named `qmd-ptm-ty-slides/`, and gives you a working template to start from.
+
+### C) Manual install
+
+```bash
+git clone https://github.com/calote/qmd-ptm-ty-slides.git
+cp -r qmd-ptm-ty-slides/_extensions YOUR_PROJECT/
+```
+
+> **`quarto add` vs `quarto use template`:**
+>
+> - **`quarto add`** only installs the extension files into `_extensions/`.
+>   It never touches your existing documents (`.qmd`, `.bib`, images, etc.).
+>   Use this to add the format to a project you already have.
+>
+> - **`quarto use template`** creates a **new directory** from the repository.
+>   If the current directory is not empty, you will be prompted for a new folder name.
+>   It never overwrites existing project files.
+>
+> To update or reinstall the extension in an existing project, use `quarto add`
+> again (with `--no-prompt` to skip confirmation). To pin a specific version,
+> append `@<tag>` (see below).
+
+### Verify the install
+
+```bash
+quarto list extensions
+# qmd-ptm-ty-slides   …   YOUR_PROJECT/_extensions/qmd-ptm-ty-slides
+```
+
+### Install a specific version
+
+To pin a particular release, append the tag to the repository reference:
+
+```bash
+quarto add calote/qmd-ptm-ty-slides@v0.4.0
+```
+
+Available tags are listed in the [GitHub Tags](../../tags) page.
 
 ## Basic Usage
 
@@ -55,6 +111,8 @@ quarto render my-presentation.qmd
 | `section-color-3` | string | Section slide background color for H3 (only when `section-level >= 4`) | *(same as `section-color`)* |
 | `accent-color` | string | Progress bar and accent element color | `"eb811b"` |
 | `font-size` | string | Global document font size | `"20pt"` |
+| `stargazer` | bool | Use Touying's Stargazer theme instead of Metropolis | `false` |
+| `theme` | string | Override theme selection (`"metropolis"` or `"stargazer"`); overrides `stargazer: true` | *(auto)* |
 | `section-level` | int | Minimum heading level for content slides; levels below become section slides | `2` |
 | `slide-numbering` | bool | Add hierarchical prefixes to slide titles (e.g., "1.2.3 Title") | `false` |
 | `slide-numbering-min-level` | int | Minimum heading level that shows a number; `2` hides numbers on H1 and drops the first component on lower levels ("1.2.3" → "2.3") | `1` |
@@ -94,7 +152,7 @@ title: "Statistics Course"
 author: "Jane Doe"
 date: today
 format:
-  touying-slides-typst:
+  qmd-ptm-ty-slides-typst:
     header-color: "#003f72"
     section-color: "#AB262D"
     section-color-2: "#7B241C"  # only needed when section-level >= 3
@@ -156,7 +214,7 @@ The `section-level` parameter controls which heading level separates section sli
 
 ```yaml
 format:
-  touying-slides-typst:
+  qmd-ptm-ty-slides-typst:
     section-level: 3
     section-color: "#AB262D"    # H1 section slides → dark red
     section-color-2: "#7B241C"  # H2 section slides → darker red
@@ -181,7 +239,7 @@ When a section-level heading has content after it (before the next heading), tha
 Headings followed immediately by another heading (no content in between) no longer generate an empty slide. This avoids blank pages in the PDF. The omitted heading is also excluded from the Table of Contents to prevent broken links. A warning is printed to the console during rendering:
 
 ```
-[touying-slides] AVISO: transparencia omitida — "3.4 Correlación" (H2) no tiene contenido antes del siguiente heading.
+[qmd-ptm-ty-slides] AVISO: transparencia omitida — "3.4 Correlación" (H2) no tiene contenido antes del siguiente heading.
 ```
 
 ### Per-level section colors (`section-color-N`)
@@ -379,7 +437,7 @@ The `gutter` attribute controls the spacing between columns (any valid Typst len
 
 The `.cols`/`.col` layout works seamlessly inside conditional blocks (`.content-visible when-meta=...`). The filter recursively unwraps Quarto's internal `ConditionalBlock` and inert div nodes to find nested column structures. This enables content adapted to slides vs. other formats within the same `.qmd`:
 
-```markdown
+``````markdown
 ::::::{.content-visible when-meta="es-slides"}
 
 :::::{.cols gutter="0.1em"}
@@ -404,7 +462,7 @@ ggplot(...)
 
 Additional text after the pause...
 ::::::
-```
+``````
 
 > **Note:**  
 > - Use `.cols`/`.col`, not `layout-ncol=2`. Quarto extracts `echo: true` source code outside of `#grid` in the Typst output when using `layout-ncol`, breaking the column layout.  
@@ -456,16 +514,33 @@ Figure output (`cell-output-display`) is **not** wrapped in the `output-bg-color
 
 ## Color Mapping
 
-The extension maps YAML parameters to Touying Metropolis theme variables:
+The extension maps YAML parameters to Touying theme variables. Both Metropolis and Stargazer themes use the same color conventions:
 
-| YAML Parameter | Metropolis Variable | Visual Effect |
+| YAML Parameter | Touying Variable | Visual Effect |
 |---|---|---|
 | `header-color` | `secondary` | Slide title bar background |
 | `section-color` | `neutral-dark` | Section slide background (H1 by default) |
 | `section-color-N` | *(passed via `config-page`)* | Section slide background for level N |
 | `accent-color` | `primary` | Progress bar and accent elements |
 
-`section-color-N` overrides the page fill of the corresponding section slide by passing `config-page(fill: color)` to Touying's `focus-slide`, which is the official Touying 0.6.1 mechanism for per-slide page customization.
+`section-color-N` overrides the page fill of the corresponding section slide by passing `config-page(fill: color)` to Touying's `focus-slide`.
+
+### Selecting the theme
+
+The extension supports two Touying themes:
+
+- **Metropolis** (default) — clean, modern design with minimal visual noise.
+- **Stargazer** — an alternative theme with a distinct typographic and color aesthetic.
+
+Select Stargazer with `stargazer: true` in the YAML, or use `theme: "stargazer"` / `theme: "metropolis"` for explicit control:
+
+```yaml
+format:
+  qmd-ptm-ty-slides-typst:
+    stargazer: true     # switches to Stargazer theme
+    # or equivalently:
+    # theme: "stargazer"
+```
 
 ## Slide Numbering
 
@@ -509,16 +584,17 @@ toc-levels: 3
 toc-columns: 2
 ```
 
-## Extension File Structure (v0.4.0)
+## Extension File Structure
 
 ```
-_extensions/touying-slides/
+_extensions/qmd-ptm-ty-slides/
 ├── _extension.yml          # Extension metadata and configuration
 ├── typst-template.typ      # Main Typst template (slides() function)
 ├── typst-show.typ          # Pandoc template connecting YAML to Typst
 ├── slides-headings.lua     # Main filter: headings → slides, TOC, code block coloring, blank slide omission
 ├── shortcodes.lua          # {{< pause >}} and {{< fontsize >}} shortcodes
-└── typst-classes.lua       # Converts Span/Div classes to Typst functions
+├── typst-classes.lua       # Converts Span/Div classes to Typst functions
+└── boxed-filter.lua        # Converts LaTeX \boxed{} to Typst boxes
 ```
 
 ## Gallery of Examples
@@ -535,7 +611,8 @@ Pre-rendered PDFs are also included in the directory for quick visual reference.
 
 | Test file | PDF preview | Features demonstrated |
 |-----------|-------------|---------------------|
-| [`test-default.qmd`](tests/regresion/test-default.qmd) | [📄](tests/regresion/test-default.pdf) | Default configuration with `section-level: 2`, text, lists, code, tables |
+| [`test-default.qmd`](tests/regresion/test-default.qmd) | [📄](tests/regresion/test-default.pdf) | Default Metropolis configuration with `section-level: 2`, text, lists, code, tables |
+| [`test-stargazer.qmd`](tests/regresion/test-stargazer.qmd) | [📄](tests/regresion/test-stargazer.pdf) | Stargazer theme with `stargazer: true`, custom colors |
 | [`test-colors.qmd`](tests/regresion/test-colors.qmd) | [📄](tests/regresion/test-colors.pdf) | Custom `header-color`, `section-color`, `section-color-2`, `accent-color` |
 | [`test-section-level.qmd`](tests/regresion/test-section-level.qmd) | [📄](tests/regresion/test-section-level.pdf) | `section-level: 3` (H1+H2 as section slides) |
 | [`test-handout.qmd`](tests/regresion/test-handout.qmd) | [📄](tests/regresion/test-handout.pdf) | `handout-mode: true` with collapsed pauses |
@@ -604,8 +681,15 @@ Pre-rendered PDFs are also included in the directory for quick visual reference.
 |-----------|-------------|---------------------|
 | [`test-citations.qmd`](tests/regresion/test-citations.qmd) | [📄](tests/regresion/test-citations.pdf) | Citations with `@key` and `[@key; @key]` |
 
+## Related extensions
+
+If you like this extension, you might also be interested in:
+
+- [**quarto-touying-typst**](https://kazuyanagimoto.com/quarto-touying-typst/) by Kazuyoshi Yanagimoto — another Quarto extension for Touying slides with a different approach to slide authoring.
+- [**diatypst**](https://github.com/skriptum/diatypst) by Skriptum — a Quarto-Typst extension for presentation slides with a clean, minimal design.
+
 ## Requirements
 
 - [Quarto](https://quarto.org/) ≥ 1.4
 - [Typst](https://typst.app/) (bundled with Quarto ≥ 1.4)
-- [Touying](https://touying-typ.github.io/) 0.6.1 (included via Typst package manager)
+- [Touying](https://touying-typ.github.io/) 0.7.4 (included via Typst package manager)

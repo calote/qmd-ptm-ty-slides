@@ -33,18 +33,18 @@ format:
     toc-font-size: "1em"
     toc-title: "Índice"
     
-  typst:
-    toc: true
-    header-includes: |
-      #let alert(body) = text(fill: rgb("#cc0000"))[body]
-  html:
-    toc: true
-  pdf:
-    toc: true
-  beamer:
-    toc: true
-  revealjs:
-    toc: true
+  # typst:
+  #   toc: true
+  #   header-includes: |
+  #     #let alert(body) = text(fill: rgb("#cc0000"))[body]
+  # html:
+  #   toc: true
+  # pdf:
+  #   toc: true
+  # beamer:
+  #   toc: true
+  # revealjs:
+  #   toc: true
 ---
 
 # Bloque 1: Conceptos Básicos

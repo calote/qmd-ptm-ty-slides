@@ -1,9 +1,17 @@
 // typst-template.typ
 // Plantilla principal para touying-slides
-// Integra el paquete Touying con el tema "metropolis"
+// Integra el paquete Touying con tema seleccionable (metropolis o stargazer)
 
-#import "@preview/touying:0.6.3": *
+//#import "@preview/touying:0.6.3": *
+#import "@preview/touying:0.7.4": *
+//#import themes.university: *
+// Importe condicional vía Pandoc: si `stargazer: true` en YAML se importa
+// el módulo completo de stargazer; en caso contrario el de metropolis.
+$if(stargazer)$
+#import themes.stargazer: *
+$else$
 #import themes.metropolis: *
+$endif$
 
 // ── Función principal del documento ──────────────────────────────────────────
 //
@@ -24,6 +32,7 @@
   institution: none,
   // Opciones visuales
   aspect-ratio: "16-9",
+  theme: "metropolis",         // "metropolis" (defecto) o "stargazer"
   handout: false,            // true → modo handout: colapsa los #pause, solo el paso final
   center-equations: true,    // true → centra ecuaciones en bloque ($$...$$) corrigiendo sangría de listas
   font-size: 20pt,           // tamaño de fuente global; coincide con el default de metropolis
@@ -36,8 +45,11 @@
 ) = {
   let sc = if section-color != none { section-color } else { header-color }
 
-  // Configurar el tema Metropolis de Touying
-  show: metropolis-theme.with(
+  // Seleccionar tema según parámetro
+  let theme-fn = if theme == "stargazer" { stargazer-theme }
+                 else { metropolis-theme }
+
+  show: theme-fn.with(
     aspect-ratio: aspect-ratio,
     config-colors(
       primary:      accent-color,   // barra de progreso

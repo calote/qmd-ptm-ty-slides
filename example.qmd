@@ -23,7 +23,7 @@ format:
     #papersize: a4
     code-bg-color: "#dce8ff"    # azul claro para código fuente
     output-bg-color: "#99bb00" #"#e8f5e9"  # verde claro para resultados
-    keep-typ: true
+    keep-typ: false
     metadata:
       es-slides: true
     section-level: 2
@@ -34,8 +34,8 @@ format:
     toc-font-size: "1em"
     toc-title: "Índice"
 
-  html:
-    toc: true
+  # html:
+  #   toc: true
   # pdf:
   #   toc: true
   # beamer:
