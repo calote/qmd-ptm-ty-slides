@@ -156,6 +156,13 @@ local function escape_typst(s)
   return s:gsub('"', '\\"')
 end
 
+-- Escapa texto plano para usarlo como título de heading oculto en Typst
+-- (marcadores PDF del lector). Mismo criterio que inlines_to_typst_content
+-- para Str: \, #, $, [ y ].
+local function escape_bookmark(s)
+  return s:gsub("\\", "\\\\"):gsub("#", "\\#"):gsub("%$", "\\$"):gsub("%[", "\\["):gsub("%]", "\\]")
+end
+
 local function meta_bool(meta, key, default)
   if meta[key] == nil then return default end
   local v = meta[key]
@@ -413,6 +420,7 @@ function Pandoc(doc)
   local show_toc   = meta_bool(doc.meta, "toc-slide", false)
   local is_handout = meta_bool(doc.meta, "handout-mode", false)
   local untitled_headings = meta_bool(doc.meta, "untitled-slide-headings", false)
+  local pdf_bookmarks = meta_bool(doc.meta, "pdf-bookmarks", true)
 
   -- ── Nivel mínimo de heading que recibe numeración ───────────────────────────
   -- slide-numbering-min-level: 2 → los H1 no muestran número y los niveles
@@ -459,6 +467,19 @@ function Pandoc(doc)
   local toc_valign = "center"
   if doc.meta["toc-vertical-align"] then
     toc_valign = pandoc.utils.stringify(doc.meta["toc-vertical-align"])
+  end
+
+  -- ── Paginado del TOC en N slides ──────────────────────────────────────────
+  -- toc-split: true → reparte los items en varios #toc-slide() para que cada
+  --   uno quepa en una página (evita el desborde vertical del grid+stack a
+  --   2 columnas, que pagina por la col1 dejando la col2 vacía).
+  -- toc-items-per-slide: nº máx. de entradas por slide TOC (defecto 28).
+  --   Los grupos H1+H2s no se parten salvo que un solo grupo exceda el máximo.
+  local toc_split = meta_bool(doc.meta, "toc-split", false)
+  local toc_per_slide = 28
+  if doc.meta["toc-items-per-slide"] then
+    toc_per_slide = tonumber(pandoc.utils.stringify(doc.meta["toc-items-per-slide"])) or 28
+    toc_per_slide = math.max(4, math.floor(toc_per_slide))
   end
 
   -- ── Normalizar colores de tema: quitar "#" inicial para Typst rgb() ──────────
@@ -558,25 +579,82 @@ function Pandoc(doc)
 
   local new_blocks = pandoc.List()
 
-  -- Diapositiva TOC (va antes del contenido, tras la portada automática)
+  -- Diapositivas TOC (van antes del contenido, tras la portada automática).
+  -- Sin toc-split: un único #toc-slide() (comportamiento original).
+  -- Con toc-split: N #toc-slide() titulados "Título (i/N)", cada uno con
+  -- como máximo toc-items-per-slide entradas y sin partir grupos H1+H2s
+  -- salvo que un grupo solo ya exceda el máximo.
   if show_toc and #toc_items > 0 then
-    local typst_items = {}
-    for _, item in ipairs(toc_items) do
-      table.insert(typst_items, string.format(
-        '(text: [%s], lbl: "%s", level: %d)',
-        item.content, item.lbl, item.level
+    local function emit_toc_chunk(chunk_items, chunk_title)
+      local typst_items = {}
+      for _, item in ipairs(chunk_items) do
+        table.insert(typst_items, string.format(
+          '(text: [%s], lbl: "%s", level: %d)',
+          item.content, item.lbl, item.level
+        ))
+      end
+      local items_str = "(" .. table.concat(typst_items, ", ") .. ",)"
+      new_blocks:insert(pandoc.RawBlock("typst",
+        '#toc-slide(' ..
+          'items: '        .. items_str               .. ', ' ..
+          'font-size: '    .. toc_font_size           .. ', ' ..
+          'columns: '      .. toc_columns             .. ', ' ..
+          'title: "'       .. escape_typst(chunk_title) .. '", ' ..
+          'body-align: "'  .. toc_valign              .. '"'  ..
+        ')'
       ))
     end
-    local items_str = "(" .. table.concat(typst_items, ", ") .. ",)"
-    new_blocks:insert(pandoc.RawBlock("typst",
-      '#toc-slide(' ..
-        'items: '        .. items_str               .. ', ' ..
-        'font-size: '    .. toc_font_size           .. ', ' ..
-        'columns: '      .. toc_columns             .. ', ' ..
-        'title: "'       .. escape_typst(toc_title) .. '", ' ..
-        'body-align: "'  .. toc_valign              .. '"'  ..
-      ')'
-    ))
+    if not toc_split then
+      emit_toc_chunk(toc_items, toc_title)
+    else
+      -- Agrupar por H1 (los H2 previos al primer H1 forman su propio grupo)
+      local groups = {}
+      local cur = {}
+      for _, item in ipairs(toc_items) do
+        if item.level == 1 then
+          if #cur > 0 then table.insert(groups, cur) end
+          cur = { item }
+        else
+          table.insert(cur, item)
+        end
+      end
+      if #cur > 0 then table.insert(groups, cur) end
+      if #groups == 0 then groups = { toc_items } end
+      -- Empaquetar grupos en chunks de como máximo toc_per_slide entradas
+      local chunks = {}
+      local chunk = {}
+      local n = 0
+      for _, g in ipairs(groups) do
+        if #g >= toc_per_slide then
+          if #chunk > 0 then table.insert(chunks, chunk); chunk = {}; n = 0 end
+          local k = 1
+          while k <= #g do
+            local part = {}
+            for j = k, math.min(k + toc_per_slide - 1, #g) do
+              table.insert(part, g[j])
+            end
+            table.insert(chunks, part)
+            k = k + toc_per_slide
+          end
+        elseif n + #g > toc_per_slide and #chunk > 0 then
+          table.insert(chunks, chunk)
+          chunk = {}
+          for _, it in ipairs(g) do table.insert(chunk, it) end
+          n = #g
+        else
+          for _, it in ipairs(g) do table.insert(chunk, it) end
+          n = n + #g
+        end
+      end
+      if #chunk > 0 then table.insert(chunks, chunk) end
+      if #chunks <= 1 then
+        emit_toc_chunk(toc_items, toc_title)
+      else
+        for i, ch in ipairs(chunks) do
+          emit_toc_chunk(ch, toc_title .. " (" .. i .. "/" .. #chunks .. ")")
+        end
+      end
+    end
   end
 
   -- ── Helper: emitir slides de contenido, dividiendo en `---` ─────────────────
@@ -584,8 +662,11 @@ function Pandoc(doc)
   -- El `first_title` y el `anchor` se colocan en el primer segmento NO VACÍO,
   -- de modo que si el contenido empieza con "------" el título no se pierde.
   -- Los segmentos siguientes crean slides con title: none.
+  -- Si `plain_title` no es nil, el segmento del título incluye además un
+  -- heading oculto (#only(1) salvo en handout) que alimenta los marcadores
+  -- del lector PDF sin ocupar espacio ni mostrarse.
   -- Devuelve false si no se emitió ningún slide (todo el contenido está vacío).
-  local function emit_content_slides(content, first_title, anchor)
+  local function emit_content_slides(content, first_title, anchor, lvl, plain_title)
     -- Si no hay ningún bloque de contenido real, no emitir slide (evita páginas en blanco)
     local has_real_content = false
     for _, b in ipairs(content) do
@@ -642,6 +723,17 @@ function Pandoc(doc)
         if has_anchor then
           new_blocks:insert(pandoc.RawBlock("typst", anchor))
         end
+        if is_title and pdf_bookmarks and plain_title ~= nil and plain_title ~= "" then
+          -- La regla show viaja en el mismo bloque que el heading: ocultarlo
+          -- aquí evita un segmento con estilo a nivel superior, que Touying
+          -- convertiría en una diapositiva en blanco.
+          local bkm = '#show heading: it => []; #heading(level: ' .. lvl .. ', outlined: true)[' .. escape_bookmark(plain_title) .. ']'
+          if is_handout then
+            new_blocks:insert(pandoc.RawBlock("typst", bkm))
+          else
+            new_blocks:insert(pandoc.RawBlock("typst", '#only(1)[' .. bkm .. ']'))
+          end
+        end
         for _, cb in ipairs(segment) do
           for _, pb in ipairs(process_cols_deep(cb)) do
             for _, wb in ipairs(wrap_code_block(pb, code_bg, output_bg, code_text)) do
@@ -677,9 +769,15 @@ function Pandoc(doc)
       -- section-slide usa el neutral-dark del tema (= section-color en YAML).
       local lvl_color = section_level_colors[block.level]
       local color_arg = lvl_color and (', color: rgb("' .. lvl_color .. '")') or ""
-      -- El ancla va DENTRO del body para que touying no interfiera
+      -- El ancla va DENTRO del body para que touying no interfiera.
+      -- El heading oculto también: alimenta el marcador PDF del lector
+      -- (las section-slides son de una sola página, sin overlays).
+      local sec_bookmark = ""
+      if pdf_bookmarks and raw_title ~= "" then
+        sec_bookmark = '#show heading: it => []; #heading(level: ' .. block.level .. ', outlined: true)[' .. escape_bookmark(raw_title) .. ']'
+      end
       new_blocks:insert(pandoc.RawBlock("typst",
-        '#section-slide(title: [' .. typst_content .. ']' .. color_arg .. ')[#metadata(none) <' .. lbl .. '>]'
+        '#section-slide(title: [' .. typst_content .. ']' .. color_arg .. ')[#metadata(none) <' .. lbl .. '>' .. sec_bookmark .. ']'
       ))
       i = i + 1
 
@@ -695,7 +793,8 @@ function Pandoc(doc)
       end
       if #section_content > 0 then
         local title_typst = typst_content ~= "" and ("[" .. typst_content .. "]") or nil
-        emit_content_slides(section_content, title_typst, nil)
+        -- Sin marcador: la section-slide ya aporta el suyo (evita duplicados).
+        emit_content_slides(section_content, title_typst, nil, block.level, nil)
       end
 
     -- Niveles slide_level .. 5 → diapositiva normal con título
@@ -747,7 +846,7 @@ function Pandoc(doc)
         )
         -- empty_lbls ya se rellenó en el pre-paso
       else
-        emit_content_slides(slide_content, title_typst, anchor)
+        emit_content_slides(slide_content, title_typst, anchor, lvl, raw_title)
       end
 
     else
